@@ -5,11 +5,9 @@
     <Project Path="samples/BaGet.WindowsService/BaGet.WindowsService.csproj" />
     <Project Path="samples/BaGetWebApplication/BaGetWebApplication.csproj" />
   </Folder>
-  <Folder Name="/Solution Items/">
+  <Folder Name="/Files/">
     <File Path=".editorconfig" />
-    <File Path="nuget.config" />
-    <File Path="readme.md" />
-    <File Path="src/Directory.Build.props" />
+    <File Path="README.md" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/BaGet.Aliyun/BaGet.Aliyun.csproj" />
