@@ -1,7 +1,5 @@
-Copyright 2025 Joshua Watkins
-
-Copyright 2024 Bernard Davison
-
+Copyright 2025 Joshua Watkins\
+Copyright 2024 Bernard Davison\
 Copyright 2018 Loic Sharma
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
