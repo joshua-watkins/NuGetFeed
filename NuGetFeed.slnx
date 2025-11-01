@@ -1,0 +1,34 @@
+<Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/BaGet.LinuxService/BaGet.LinuxService.csproj" />
+    <Project Path="samples/BaGet.Protocol.Samples.Tests/BaGet.Protocol.Samples.Tests.csproj" />
+    <Project Path="samples/BaGet.WindowsService/BaGet.WindowsService.csproj" />
+    <Project Path="samples/BaGetWebApplication/BaGetWebApplication.csproj" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="nuget.config" />
+    <File Path="readme.md" />
+    <File Path="src/Directory.Build.props" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/BaGet.Aliyun/BaGet.Aliyun.csproj" />
+    <Project Path="src/BaGet.Aws/BaGet.Aws.csproj" />
+    <Project Path="src/BaGet.Azure/BaGet.Azure.csproj" />
+    <Project Path="src/BaGet.Core/BaGet.Core.csproj" />
+    <Project Path="src/BaGet.Database.MySql/BaGet.Database.MySql.csproj" />
+    <Project Path="src/BaGet.Database.PostgreSql/BaGet.Database.PostgreSql.csproj" />
+    <Project Path="src/BaGet.Database.Sqlite/BaGet.Database.Sqlite.csproj" />
+    <Project Path="src/BaGet.Database.SqlServer/BaGet.Database.SqlServer.csproj" />
+    <Project Path="src/BaGet.Gcp/BaGet.Gcp.csproj" />
+    <Project Path="src/BaGet.Protocol/BaGet.Protocol.csproj" />
+    <Project Path="src/BaGet.Web/BaGet.Web.csproj" />
+    <Project Path="src/BaGet/BaGet.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/BaGet.Core.Tests/BaGet.Core.Tests.csproj" />
+    <Project Path="tests/BaGet.Protocol.Tests/BaGet.Protocol.Tests.csproj" />
+    <Project Path="tests/BaGet.Tests/BaGet.Tests.csproj" />
+    <Project Path="tests/BaGet.Web.Tests/BaGet.Web.Tests.csproj" />
+  </Folder>
+</Solution>
