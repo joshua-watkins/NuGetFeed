@@ -6,7 +6,6 @@
     <Project Path="samples/BaGetWebApplication/BaGetWebApplication.csproj" />
   </Folder>
   <Folder Name="/Files/">
-    <File Path=".editorconfig" />
     <File Path="README.md" />
   </Folder>
   <Folder Name="/src/">
