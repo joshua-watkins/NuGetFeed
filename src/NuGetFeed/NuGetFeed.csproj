@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -15,15 +15,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NuGetFeed.Aliyun\NuGetFeed.Aliyun.csproj" />
-    <ProjectReference Include="..\NuGetFeed.Aws\NuGetFeed.Aws.csproj" />
-    <ProjectReference Include="..\NuGetFeed.Azure\NuGetFeed.Azure.csproj" />
     <ProjectReference Include="..\NuGetFeed.Core\NuGetFeed.Core.csproj" />
-    <ProjectReference Include="..\NuGetFeed.Database.MySql\NuGetFeed.Database.MySql.csproj" />
-    <ProjectReference Include="..\NuGetFeed.Database.PostgreSql\NuGetFeed.Database.PostgreSql.csproj" />
     <ProjectReference Include="..\NuGetFeed.Database.Sqlite\NuGetFeed.Database.Sqlite.csproj" />
-    <ProjectReference Include="..\NuGetFeed.Database.SqlServer\NuGetFeed.Database.SqlServer.csproj" />
-    <ProjectReference Include="..\NuGetFeed.Gcp\NuGetFeed.Gcp.csproj" />
     <ProjectReference Include="..\NuGetFeed.Web\NuGetFeed.Web.csproj" />
     <ProjectReference Include="..\NuGetFeed.Protocol\NuGetFeed.Protocol.csproj" />
   </ItemGroup>

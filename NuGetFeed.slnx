@@ -8,15 +8,8 @@
   <Project Path="samples/NuGetFeed.Protocol.Samples.Tests/NuGetFeed.Protocol.Samples.Tests.csproj" />
   <Project Path="samples/NuGetFeed.WindowsService/NuGetFeed.WindowsService.csproj" />
   <Project Path="samples/NuGetFeed.WebApp/NuGetFeed.WebApp.csproj" />
-  <Project Path="src/NuGetFeed.Aliyun/NuGetFeed.Aliyun.csproj" />
-  <Project Path="src/NuGetFeed.Aws/NuGetFeed.Aws.csproj" />
-  <Project Path="src/NuGetFeed.Azure/NuGetFeed.Azure.csproj" />
   <Project Path="src/NuGetFeed.Core/NuGetFeed.Core.csproj" />
-  <Project Path="src/NuGetFeed.Database.MySql/NuGetFeed.Database.MySql.csproj" />
-  <Project Path="src/NuGetFeed.Database.PostgreSql/NuGetFeed.Database.PostgreSql.csproj" />
   <Project Path="src/NuGetFeed.Database.Sqlite/NuGetFeed.Database.Sqlite.csproj" />
-  <Project Path="src/NuGetFeed.Database.SqlServer/NuGetFeed.Database.SqlServer.csproj" />
-  <Project Path="src/NuGetFeed.Gcp/NuGetFeed.Gcp.csproj" />
   <Project Path="src/NuGetFeed.Protocol/NuGetFeed.Protocol.csproj" />
   <Project Path="src/NuGetFeed.Web/NuGetFeed.Web.csproj" />
   <Project Path="src/NuGetFeed/NuGetFeed.csproj" />
