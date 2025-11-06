@@ -6,6 +6,8 @@
     <Project Path="samples/BaGetWebApplication/BaGetWebApplication.csproj" />
   </Folder>
   <Folder Name="/Files/">
+    <File Path=".gitignore" />
+    <File Path="LICENSE.md" />
     <File Path="README.md" />
   </Folder>
   <Folder Name="/src/">
