@@ -31,7 +31,7 @@ namespace BaGet.Tests
 
             using var downstreamResponse = await _downstreamClient.GetAsync("v3/search");
             var downstreamContent = await downstreamResponse.Content.ReadAsStreamAsync();
-            var downstreamJson = downstreamContent.ToPrettifiedJson().ReplaceLineEndings("\n");
+            var downstreamJson = downstreamContent.ToPrettifiedJson();
 
             // The downstream package source should not have the package.
             Assert.Equal(HttpStatusCode.OK, downstreamResponse.StatusCode);
@@ -85,7 +85,7 @@ namespace BaGet.Tests
 
             using var response = await _downstreamClient.GetAsync("v3/registration/TestData/index.json");
             var content = await response.Content.ReadAsStreamAsync();
-            var json = content.ToPrettifiedJson().ReplaceLineEndings("\n");
+            var json = content.ToPrettifiedJson();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(@"{
@@ -149,7 +149,7 @@ namespace BaGet.Tests
 
             using var response = await _downstreamClient.GetAsync("v3/registration/TestData/1.2.3.json");
             var content = await response.Content.ReadAsStreamAsync();
-            var json = content.ToPrettifiedJson().ReplaceLineEndings("\n");
+            var json = content.ToPrettifiedJson();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(@"{

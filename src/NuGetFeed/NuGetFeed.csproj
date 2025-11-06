@@ -15,17 +15,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BaGet.Aliyun\NuGetFeed.Aliyun.csproj" />
-    <ProjectReference Include="..\BaGet.Aws\NuGetFeed.Aws.csproj" />
-    <ProjectReference Include="..\BaGet.Azure\NuGetFeed.Azure.csproj" />
-    <ProjectReference Include="..\BaGet.Core\NuGetFeed.Core.csproj" />
-    <ProjectReference Include="..\BaGet.Database.MySql\NuGetFeed.Database.MySql.csproj" />
-    <ProjectReference Include="..\BaGet.Database.PostgreSql\NuGetFeed.Database.PostgreSql.csproj" />
-    <ProjectReference Include="..\BaGet.Database.Sqlite\NuGetFeed.Database.Sqlite.csproj" />
-    <ProjectReference Include="..\BaGet.Database.SqlServer\NuGetFeed.Database.SqlServer.csproj" />
-    <ProjectReference Include="..\BaGet.Gcp\NuGetFeed.Gcp.csproj" />
-    <ProjectReference Include="..\BaGet.Web\NuGetFeed.Web.csproj" />
-    <ProjectReference Include="..\BaGet.Protocol\NuGetFeed.Protocol.csproj" />
+    <ProjectReference Include="..\NuGetFeed.Aliyun\NuGetFeed.Aliyun.csproj" />
+    <ProjectReference Include="..\NuGetFeed.Aws\NuGetFeed.Aws.csproj" />
+    <ProjectReference Include="..\NuGetFeed.Azure\NuGetFeed.Azure.csproj" />
+    <ProjectReference Include="..\NuGetFeed.Core\NuGetFeed.Core.csproj" />
+    <ProjectReference Include="..\NuGetFeed.Database.MySql\NuGetFeed.Database.MySql.csproj" />
+    <ProjectReference Include="..\NuGetFeed.Database.PostgreSql\NuGetFeed.Database.PostgreSql.csproj" />
+    <ProjectReference Include="..\NuGetFeed.Database.Sqlite\NuGetFeed.Database.Sqlite.csproj" />
+    <ProjectReference Include="..\NuGetFeed.Database.SqlServer\NuGetFeed.Database.SqlServer.csproj" />
+    <ProjectReference Include="..\NuGetFeed.Gcp\NuGetFeed.Gcp.csproj" />
+    <ProjectReference Include="..\NuGetFeed.Web\NuGetFeed.Web.csproj" />
+    <ProjectReference Include="..\NuGetFeed.Protocol\NuGetFeed.Protocol.csproj" />
   </ItemGroup>
 
 </Project>

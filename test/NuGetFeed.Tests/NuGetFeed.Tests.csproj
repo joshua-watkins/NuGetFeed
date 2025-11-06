@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\BaGet\NuGetFeed.csproj" />
+    <ProjectReference Include="..\..\src\NuGetFeed\NuGetFeed.csproj" />
   </ItemGroup>
 
   <ItemGroup>

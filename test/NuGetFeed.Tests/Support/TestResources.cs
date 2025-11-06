@@ -4,7 +4,7 @@ namespace BaGet.Tests
 {
     public static class TestResources
     {
-        private const string ResourcePrefix = "BaGet.Tests.TestData.";
+        private const string ResourcePrefix = "NuGetFeed.Tests.TestData.";
 
         /// <summary>
         /// Test package created with the following properties:

@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\BaGet.Core\NuGetFeed.Core.csproj" />
+    <ProjectReference Include="..\..\src\NuGetFeed.Core\NuGetFeed.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

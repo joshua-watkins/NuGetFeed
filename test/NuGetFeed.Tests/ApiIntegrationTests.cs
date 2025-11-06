@@ -42,7 +42,7 @@ namespace BaGet.Tests
 
             using var response = await _client.GetAsync("v3/search");
             var content = await response.Content.ReadAsStreamAsync();
-            var json = content.ToPrettifiedJson().ReplaceLineEndings("\n");
+            var json = content.ToPrettifiedJson();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(@"{
@@ -84,7 +84,7 @@ namespace BaGet.Tests
         {
             using var response = await _client.GetAsync("v3/search?q=PackageDoesNotExist");
             var content = await response.Content.ReadAsStreamAsync();
-            var json = content.ToPrettifiedJson().ReplaceLineEndings("\n");
+            var json = content.ToPrettifiedJson();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(@"{
@@ -104,7 +104,7 @@ namespace BaGet.Tests
 
             using var response = await _client.GetAsync("v3/autocomplete");
             var content = await response.Content.ReadAsStreamAsync();
-            var json = content.ToPrettifiedJson().ReplaceLineEndings("\n");
+            var json = content.ToPrettifiedJson();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(@"{
@@ -123,7 +123,7 @@ namespace BaGet.Tests
         {
             using var response = await _client.GetAsync("v3/autocomplete?q=PackageDoesNotExist");
             var content = await response.Content.ReadAsStreamAsync();
-            var json = content.ToPrettifiedJson().ReplaceLineEndings("\n");
+            var json = content.ToPrettifiedJson();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(@"{
@@ -142,7 +142,7 @@ namespace BaGet.Tests
 
             using var response = await _client.GetAsync("v3/autocomplete?id=TestData");
             var content = await response.Content.ReadAsStreamAsync();
-            var json = content.ToPrettifiedJson().ReplaceLineEndings("\n");
+            var json = content.ToPrettifiedJson();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(@"{
@@ -161,7 +161,7 @@ namespace BaGet.Tests
         {
             using var response = await _client.GetAsync("v3/autocomplete?id=PackageDoesNotExist");
             var content = await response.Content.ReadAsStreamAsync();
-            var json = content.ToPrettifiedJson().ReplaceLineEndings("\n");
+            var json = content.ToPrettifiedJson();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(@"{
@@ -239,7 +239,7 @@ namespace BaGet.Tests
 
             using var response = await _client.GetAsync("v3/registration/TestData/index.json");
             var content = await response.Content.ReadAsStreamAsync();
-            var json = content.ToPrettifiedJson().ReplaceLineEndings("\n");
+            var json = content.ToPrettifiedJson();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(@"{
@@ -314,7 +314,7 @@ namespace BaGet.Tests
 
             using var response = await _client.GetAsync("v3/registration/TestData/1.2.3.json");
             var content = await response.Content.ReadAsStreamAsync();
-            var json = content.ToPrettifiedJson().ReplaceLineEndings("\n");
+            var json = content.ToPrettifiedJson();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(@"{
@@ -344,7 +344,7 @@ namespace BaGet.Tests
             using var response = await _client.GetAsync("v3/dependents?packageId=TestData");
 
             var content = await response.Content.ReadAsStreamAsync();
-            var json = content.ToPrettifiedJson().ReplaceLineEndings("\n");
+            var json = content.ToPrettifiedJson();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.Equal(@"{

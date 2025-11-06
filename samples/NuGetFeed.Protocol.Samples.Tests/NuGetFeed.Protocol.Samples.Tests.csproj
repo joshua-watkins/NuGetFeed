@@ -19,7 +19,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\src\BaGet.Protocol\NuGetFeed.Protocol.csproj" />
+		<ProjectReference Include="..\..\src\NuGetFeed.Protocol\NuGetFeed.Protocol.csproj" />
 	</ItemGroup>
 
 </Project>

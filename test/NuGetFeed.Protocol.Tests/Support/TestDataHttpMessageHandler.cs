@@ -1,3 +1,4 @@
+using NuGetFeed.Protocol.Tests;
 using System;
 using System.Collections.Generic;
 using System.Net;
