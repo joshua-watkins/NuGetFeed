@@ -1,7 +1,8 @@
 using System.Net;
 using System.Net.Http;
 using BaGet.Protocol.Internal;
-using NuGetFeed.Protocol.Tests;
+using BaGet.Protocol.Tests;
+using NuGetFeed.Tests;
 
 namespace BaGet.Protocol.Tests
 {

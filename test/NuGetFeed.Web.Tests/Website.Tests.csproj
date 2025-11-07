@@ -1,26 +1,13 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+	  <AssemblyName>$(SolutionName).$(MSBuildProjectName)</AssemblyName>
+	  <RootNamespace>$(SolutionName).Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\NuGetFeed.Protocol\NuGetFeed.Protocol.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="TestData.Designer.cs">
-      <DependentUpon>TestData.resx</DependentUpon>
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="TestData.resx">
-      <LastGenOutput>TestData.Designer.cs</LastGenOutput>
-      <Generator>ResXFileCodeGenerator</Generator>
-    </EmbeddedResource>
+    <ProjectReference Include="..\..\src\NuGetFeed.Web\Website.csproj" />
   </ItemGroup>
 
   <ItemGroup>

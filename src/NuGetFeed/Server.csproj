@@ -2,6 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+
+	  <AssemblyName>$(SolutionName).$(MSBuildProjectName)</AssemblyName>
+	  <RootNamespace>$(SolutionName)</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,10 +18,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NuGetFeed.Core\NuGetFeed.Core.csproj" />
+    <ProjectReference Include="..\NuGetFeed.Core\Core.csproj" />
     <ProjectReference Include="..\NuGetFeed.Database.Sqlite\NuGetFeed.Database.Sqlite.csproj" />
-    <ProjectReference Include="..\NuGetFeed.Web\NuGetFeed.Web.csproj" />
-    <ProjectReference Include="..\NuGetFeed.Protocol\NuGetFeed.Protocol.csproj" />
+    <ProjectReference Include="..\NuGetFeed.Web\Website.csproj" />
   </ItemGroup>
 
 </Project>

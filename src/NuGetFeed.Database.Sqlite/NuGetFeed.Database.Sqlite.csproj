@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>net8.0</TargetFrameworks>
@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NuGetFeed.Core\NuGetFeed.Core.csproj" />
+    <ProjectReference Include="..\NuGetFeed.Core\Core.csproj" />
   </ItemGroup>
 
 </Project>

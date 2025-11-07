@@ -5,7 +5,8 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UserSecretsId>dotnet-BaGet.LinuxService-d749ca94-aab4-4d12-9a0a-b631d6144c5e</UserSecretsId>
-		<AssemblyName>BaGet</AssemblyName>
+		<AssemblyName>$(SolutionName)</AssemblyName>
+		<RootNamespace>$(SolutionName).$(MSBuildProjectName)</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -14,7 +15,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\NuGetFeed.Database.Sqlite\NuGetFeed.Database.Sqlite.csproj" />
-		<ProjectReference Include="..\..\src\NuGetFeed.Web\NuGetFeed.Web.csproj" />
+		<ProjectReference Include="..\..\src\NuGetFeed.Web\Website.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

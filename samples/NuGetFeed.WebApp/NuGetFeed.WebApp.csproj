@@ -6,7 +6,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\src\NuGetFeed.Database.Sqlite\NuGetFeed.Database.Sqlite.csproj" />
-		<ProjectReference Include="..\..\src\NuGetFeed.Web\NuGetFeed.Web.csproj" />
+		<ProjectReference Include="..\..\src\NuGetFeed.Web\Website.csproj" />
 	</ItemGroup>
 
 </Project>

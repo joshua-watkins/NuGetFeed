@@ -1,7 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+	  <AssemblyName>$(SolutionName).$(MSBuildProjectName)</AssemblyName>
+	  <RootNamespace>$(SolutionName)</RootNamespace>
 
     <PackageTags>NuGet</PackageTags>
     <Description>BaGet's NuGet server implementation</Description>
@@ -21,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NuGetFeed.Core\NuGetFeed.Core.csproj" />
+    <ProjectReference Include="..\NuGetFeed.Core\Core.csproj" />
   </ItemGroup>
 
 </Project>

@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using BaGet.Protocol.Internal;
 using BaGet.Protocol.Models;
-using NuGetFeed.Protocol.Tests;
+using NuGetFeed.Tests;
 using Xunit;
 
 namespace BaGet.Protocol.Tests

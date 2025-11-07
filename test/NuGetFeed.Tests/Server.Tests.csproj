@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+	  <AssemblyName>$(SolutionName).$(MSBuildProjectName)</AssemblyName>
+	  <RootNamespace>$(SolutionName).Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -9,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\NuGetFeed\NuGetFeed.csproj" />
+    <ProjectReference Include="..\..\src\NuGetFeed\Server.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -15,6 +15,19 @@
 * Runs on Windows, Linux, and macOS.
 * Updated to latest .NET LTS release.
 
+NuGetFeed.Core - core shared libraries - nuget package output
+NuGetFeed.Server - package feed backend services.AddNuGetFeed() application.AddNuGetFeed() - nuget package output
+NuGetFeed.Website - optional web frontend services.AddNuGetFeedUI() application.AddNuGetFeedUI() - nuget package output
+
+NuGetFeed.Windows - Windows Service deployment/publish
+NuGetFeed.Windows.Setup - MSI package for above - publish to .msi file
+NuGetFeed.Linux - Linux SystemD Service - folder publish to .tar.gz file
+NuGetFeed.Sample - minimum viable product example? probably not necessary, can just be documented
+
+NuGetFeed.Core.Tests
+NuGetFeed.Server.Tests
+NuGetFeed.Website.Tests
+
 TBD if it's worth maintaining mirroring.
 Offline support: [mirror a NuGet feed] to speed up builds and enable offline downloads
 

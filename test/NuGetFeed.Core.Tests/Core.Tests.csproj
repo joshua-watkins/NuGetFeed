@@ -1,12 +1,30 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+	  <AssemblyName>$(SolutionName).$(MSBuildProjectName)</AssemblyName>
+	  <RootNamespace>$(SolutionName).Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\NuGetFeed.Web\NuGetFeed.Web.csproj" />
+    <ProjectReference Include="..\..\src\NuGetFeed.Core\Core.csproj" />
   </ItemGroup>
+
+	<ItemGroup>
+		<Compile Update="TestData.Designer.cs">
+			<DependentUpon>TestData.resx</DependentUpon>
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+		</Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Update="TestData.resx">
+			<LastGenOutput>TestData.Designer.cs</LastGenOutput>
+			<Generator>ResXFileCodeGenerator</Generator>
+		</EmbeddedResource>
+	</ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.4">

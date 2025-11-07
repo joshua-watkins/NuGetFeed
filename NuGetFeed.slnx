@@ -4,17 +4,14 @@
     <File Path="LICENSE.md" />
     <File Path="README.md" />
   </Folder>
-  <Project Path="samples/NuGetFeed.LinuxService/NuGetFeed.LinuxService.csproj" />
-  <Project Path="samples/NuGetFeed.Protocol.Samples.Tests/NuGetFeed.Protocol.Samples.Tests.csproj" />
-  <Project Path="samples/NuGetFeed.WindowsService/NuGetFeed.WindowsService.csproj" />
+  <Project Path="samples/NuGetFeed.LinuxService/Linux.csproj" />
   <Project Path="samples/NuGetFeed.WebApp/NuGetFeed.WebApp.csproj" />
-  <Project Path="src/NuGetFeed.Core/NuGetFeed.Core.csproj" />
+  <Project Path="samples/NuGetFeed.WindowsService/Windows.csproj" />
+  <Project Path="src/NuGetFeed.Core/Core.csproj" />
   <Project Path="src/NuGetFeed.Database.Sqlite/NuGetFeed.Database.Sqlite.csproj" />
-  <Project Path="src/NuGetFeed.Protocol/NuGetFeed.Protocol.csproj" />
-  <Project Path="src/NuGetFeed.Web/NuGetFeed.Web.csproj" />
-  <Project Path="src/NuGetFeed/NuGetFeed.csproj" />
-  <Project Path="test/NuGetFeed.Core.Tests/NuGetFeed.Core.Tests.csproj" />
-  <Project Path="test/NuGetFeed.Protocol.Tests/NuGetFeed.Protocol.Tests.csproj" />
-  <Project Path="test/NuGetFeed.Tests/NuGetFeed.Tests.csproj" />
-  <Project Path="test/NuGetFeed.Web.Tests/NuGetFeed.Web.Tests.csproj" />
+  <Project Path="src/NuGetFeed.Web/Website.csproj" />
+  <Project Path="src/NuGetFeed/Server.csproj" />
+  <Project Path="test/NuGetFeed.Core.Tests/Core.Tests.csproj" />
+  <Project Path="test/NuGetFeed.Tests/Server.Tests.csproj" />
+  <Project Path="test/NuGetFeed.Web.Tests/Website.Tests.csproj" />
 </Solution>
