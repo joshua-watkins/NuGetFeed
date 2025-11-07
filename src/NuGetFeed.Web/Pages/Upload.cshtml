@@ -78,9 +78,9 @@
         {
             name: "PowerShellGet",
             content: [
-                "Register-PSRepository -Name \"BaGet\" -SourceLocation \"@serviceIndexUrl\" "
+                "Register-PSRepository -Name \"NuGetFeed\" -SourceLocation \"@serviceIndexUrl\" "
                   + "-PublishLocation \"@publishUrl\" -InstallationPolicy \"Trusted\"",
-                "Publish-Module -Name PS-Module -Repository BaGet"
+                "Publish-Module -Name PS-Module -Repository NuGetFeed"
             ],
             documentation: "https://docs.microsoft.com/en-us/powershell/module/powershellget/publish-module",
         },
