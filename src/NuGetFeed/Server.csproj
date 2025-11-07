@@ -14,12 +14,12 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.10" />
 	  <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\NuGetFeed.Core\Core.csproj" />
-    <ProjectReference Include="..\NuGetFeed.Database.Sqlite\NuGetFeed.Database.Sqlite.csproj" />
     <ProjectReference Include="..\NuGetFeed.Web\Website.csproj" />
   </ItemGroup>
 

@@ -5,10 +5,8 @@
     <File Path="README.md" />
   </Folder>
   <Project Path="samples/NuGetFeed.LinuxService/Linux.csproj" />
-  <Project Path="samples/NuGetFeed.WebApp/NuGetFeed.WebApp.csproj" />
   <Project Path="samples/NuGetFeed.WindowsService/Windows.csproj" />
   <Project Path="src/NuGetFeed.Core/Core.csproj" />
-  <Project Path="src/NuGetFeed.Database.Sqlite/NuGetFeed.Database.Sqlite.csproj" />
   <Project Path="src/NuGetFeed.Web/Website.csproj" />
   <Project Path="src/NuGetFeed/Server.csproj" />
   <Project Path="test/NuGetFeed.Core.Tests/Core.Tests.csproj" />
