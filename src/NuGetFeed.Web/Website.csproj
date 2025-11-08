@@ -1,29 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-	  <AssemblyName>$(SolutionName).$(MSBuildProjectName)</AssemblyName>
-	  <RootNamespace>$(SolutionName)</RootNamespace>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<AssemblyName>$(SolutionName).$(MSBuildProjectName)</AssemblyName>
+		<RootNamespace>$(SolutionName)</RootNamespace>
+		<IsAotCompatible>true</IsAotCompatible>
+		<EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
+		<RazorCompileOnBuild>true</RazorCompileOnBuild>
+		<AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+		<!-- Switch to Razor Slices which are AOT compatible. -->
+	</PropertyGroup>
 
-    <PackageTags>NuGet</PackageTags>
-    <Description>BaGet's NuGet server implementation</Description>
-    <RootNamespace>BaGet.Web</RootNamespace>
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
 
-    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
-  </PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Humanizer" Version="2.14.1" />
+		<PackageReference Include="Markdig" Version="0.43.0" />
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Humanizer" Version="2.14.1" />
-    <PackageReference Include="Markdig" Version="0.43.0" />
-	  <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\NuGetFeed.Core\Core.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\NuGetFeed.Core\Core.csproj" />
+	</ItemGroup>
 
 </Project>

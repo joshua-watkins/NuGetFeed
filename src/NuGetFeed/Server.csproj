@@ -5,6 +5,8 @@
 
 	  <AssemblyName>$(SolutionName).$(MSBuildProjectName)</AssemblyName>
 	  <RootNamespace>$(SolutionName)</RootNamespace>
+	  <IsAotCompatible>true</IsAotCompatible>
+	  <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
   </PropertyGroup>
 
   <ItemGroup>

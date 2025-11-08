@@ -6,6 +6,16 @@ namespace BaGet.LinuxService
     {
         public static void Main(string[] args)
         {
+            //HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
+
+            //builder.Configuration
+            //    .Sources.Clear();
+            //builder.Configuration
+            //    .AddIniFile("NuGetFeed.ini", true, true);
+
+
+
+
             var builder = Host.CreateDefaultBuilder(args);
             builder.ConfigureAppConfiguration((ctx, config) =>
             {
