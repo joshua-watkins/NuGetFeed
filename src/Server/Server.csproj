@@ -21,8 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NuGetFeed.Core\Core.csproj" />
-    <ProjectReference Include="..\NuGetFeed.Web\Website.csproj" />
+    <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\Website\Website.csproj" />
   </ItemGroup>
 
 </Project>

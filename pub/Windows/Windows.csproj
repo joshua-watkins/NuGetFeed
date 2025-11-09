@@ -14,7 +14,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\src\NuGetFeed.Web\Website.csproj" />
-		<ProjectReference Include="..\..\src\NuGetFeed\Server.csproj" />
+		<ProjectReference Include="..\..\src\Server\Server.csproj" />
+		<ProjectReference Include="..\..\src\Website\Website.csproj" />
 	</ItemGroup>
 </Project>

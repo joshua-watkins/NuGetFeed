@@ -1,15 +1,30 @@
 <Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="ARM64" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
   <Folder Name="/Files/">
     <File Path=".gitignore" />
     <File Path="LICENSE.md" />
     <File Path="README.md" />
   </Folder>
-  <Project Path="samples/NuGetFeed.LinuxService/Linux.csproj" />
-  <Project Path="samples/NuGetFeed.WindowsService/Windows.csproj" />
-  <Project Path="src/NuGetFeed.Core/Core.csproj" />
-  <Project Path="src/NuGetFeed.Web/Website.csproj" />
-  <Project Path="src/NuGetFeed/Server.csproj" />
-  <Project Path="test/NuGetFeed.Core.Tests/Core.Tests.csproj" />
-  <Project Path="test/NuGetFeed.Tests/Server.Tests.csproj" />
-  <Project Path="test/NuGetFeed.Web.Tests/Website.Tests.csproj" />
+  <Folder Name="/Source/">
+    <Project Path="src/Core/Core.csproj" />
+    <Project Path="src/Server/Server.csproj" />
+    <Project Path="src/Website/Website.csproj" />
+  </Folder>
+  <Folder Name="/Publish/">
+    <Project Path="pub/Linux/Linux.csproj" />
+    <Project Path="pub/Setup/Windows.Setup.wixproj" Type="b7dd6f7e-def8-4e67-b5b7-07ef123db6f0" Id="1f9582b8-5580-45cd-92cf-83fa0e23d35f">
+      <Platform Solution="*|Any CPU" Project="x64" />
+    </Project>
+    <Project Path="pub/Windows/Windows.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="test/Core/Core.Tests.csproj" />
+    <Project Path="test/Server/Server.Tests.csproj" />
+    <Project Path="test/Website/Website.Tests.csproj" />
+  </Folder>
 </Solution>
