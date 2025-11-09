@@ -1,9 +1,8 @@
+using BaGet.Protocol.Internal;
+using NuGetFeed.Core.Tests;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using BaGet.Protocol.Internal;
-using BaGet.Protocol.Models;
-using NuGetFeed.Tests;
 using Xunit;
 
 namespace BaGet.Protocol.Tests

@@ -1,5 +1,5 @@
 using BaGet.Protocol.Internal;
-using NuGetFeed.Tests;
+using NuGetFeed.Core.Tests;
 using System.Threading.Tasks;
 using Xunit;
 

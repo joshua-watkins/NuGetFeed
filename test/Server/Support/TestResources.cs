@@ -4,7 +4,8 @@ namespace BaGet.Tests
 {
     public static class TestResources
     {
-        private const string ResourcePrefix = "NuGetFeed.Tests.TestData.";
+        // TODO: either typeof(TestData).name or nameof to namespace
+        private const string ResourcePrefix = "NuGetFeed.Server.Tests.TestData.";
 
         /// <summary>
         /// Test package created with the following properties:

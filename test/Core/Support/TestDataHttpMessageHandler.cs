@@ -1,4 +1,4 @@
-using NuGetFeed.Tests;
+using NuGetFeed.Core.Tests;
 using System;
 using System.Collections.Generic;
 using System.Net;
