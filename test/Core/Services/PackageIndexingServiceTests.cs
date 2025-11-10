@@ -2,6 +2,12 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
+using NuGetFeed;
+using NuGetFeed.Configuration;
+using NuGetFeed.Extensions;
+using NuGetFeed.Indexing;
+using NuGetFeed.Search;
+using NuGetFeed.Storage;
 using Xunit;
 
 namespace BaGet.Core.Tests.Services

@@ -1,35 +1,37 @@
-namespace BaGet.WindowsService
+using NuGetFeed;
+using NuGetFeed.Extensions;
+
+namespace NuGetFeed.Windows;
+
+public class Startup
 {
-    public class Startup
+    public void ConfigureServices(IServiceCollection services)
     {
-        public void ConfigureServices(IServiceCollection services)
+        services.AddBaGetWebApplication(app =>
         {
-            services.AddBaGetWebApplication(app =>
-            {
-                // Use SQLite as BaGet's database and store packages on the local file system.
-                app.AddSqliteDatabase();
-                //app.AddPostgreSqlDatabase();
-                app.AddFileStorage();
-            });
+            // Use SQLite as BaGet's database and store packages on the local file system.
+            app.AddSqliteDatabase();
+            //app.AddPostgreSqlDatabase();
+            app.AddFileStorage();
+        });
+    }
+
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    {
+        if (env.IsDevelopment())
+        {
+            app.UseDeveloperExceptionPage();
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        app.UseStaticFiles();
+        app.UseRouting();
+
+        app.UseEndpoints(endpoints =>
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
+            // Add BaGet's endpoints.
+            var baget = new BaGetEndpointBuilder();
 
-            app.UseStaticFiles();
-            app.UseRouting();
-
-            app.UseEndpoints(endpoints =>
-            {
-                // Add BaGet's endpoints.
-                var baget = new BaGetEndpointBuilder();
-
-                baget.MapEndpoints(endpoints);
-            });
-        }
+            baget.MapEndpoints(endpoints);
+        });
     }
 }

@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
-using BaGet.Protocol.Internal;
+using NuGetFeed.Core.Tests.Support;
+using NuGetFeed.Search;
 using Xunit;
 
 namespace BaGet.Protocol.Tests

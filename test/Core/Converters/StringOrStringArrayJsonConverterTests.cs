@@ -1,6 +1,6 @@
+using NuGetFeed.Converters;
 using System.Collections.Generic;
 using System.Text.Json;
-using BaGet.Protocol.Internal;
 using Xunit;
 
 namespace BaGet.Protocol.Tests

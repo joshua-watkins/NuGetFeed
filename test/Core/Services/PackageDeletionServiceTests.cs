@@ -4,6 +4,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Versioning;
+using NuGetFeed;
+using NuGetFeed.Configuration;
+using NuGetFeed.Indexing;
+using NuGetFeed.Storage;
 using Xunit;
 
 namespace BaGet.Core.Tests.Services

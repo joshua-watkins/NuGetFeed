@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Versioning;
+using NuGetFeed.Entities;
+using NuGetFeed.Storage;
 using System;
 using System.Collections.Generic;
 using System.IO;

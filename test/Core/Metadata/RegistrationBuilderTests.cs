@@ -2,6 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Moq;
 using NuGet.Versioning;
+using NuGetFeed;
+using NuGetFeed.Entities;
+using NuGetFeed.Metadata;
 using Xunit;
 
 namespace BaGet.Core.Tests.Metadata

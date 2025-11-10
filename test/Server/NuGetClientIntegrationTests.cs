@@ -8,6 +8,7 @@ using NuGet.Configuration;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
+using NuGetFeed.Server.Tests.Support;
 using Xunit;
 using Xunit.Abstractions;
 

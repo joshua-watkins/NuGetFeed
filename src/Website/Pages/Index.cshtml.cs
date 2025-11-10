@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Threading;
 using System.Threading.Tasks;
-using BaGet.Core;
-using BaGet.Protocol.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using NuGetFeed.Models;
+using NuGetFeed.Search;
 
 namespace BaGet.Web
 {

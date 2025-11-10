@@ -1,9 +1,12 @@
-using BaGet.Core;
 using Markdig;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using NuGet.Frameworks;
 using NuGet.Versioning;
+using NuGetFeed;
+using NuGetFeed.Content;
+using NuGetFeed.Entities;
+using NuGetFeed.Search;
 using System;
 using System.Collections.Generic;
 using System.IO;

@@ -1,8 +1,10 @@
-using BaGet.Protocol;
-using BaGet.Protocol.Models;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Versioning;
+using NuGetFeed;
+using NuGetFeed.Entities;
+using NuGetFeed.Models;
+using NuGetFeed.Upstream.Clients;
 using System;
 using System.Collections.Generic;
 using System.IO;

@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Options;
 using Moq;
+using NuGetFeed.Configuration;
+using NuGetFeed.Storage;
 using System;
 using System.Collections.Generic;
 using System.IO;

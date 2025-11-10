@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NuGetFeed.Server.Tests.Support;
+using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;

@@ -1,10 +1,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace BaGet.Core
+namespace NuGetFeed.Upstream;
+
+public interface IPackageDownloadsSource
 {
-    public interface IPackageDownloadsSource
-    {
-        Task<Dictionary<string, Dictionary<string, long>>> GetPackageDownloadsAsync();
-    }
+    Task<Dictionary<string, Dictionary<string, long>>> GetPackageDownloadsAsync();
 }

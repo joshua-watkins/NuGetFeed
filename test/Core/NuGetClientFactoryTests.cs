@@ -1,3 +1,4 @@
+using NuGetFeed.Core.Tests.Support;
 using Xunit;
 
 namespace BaGet.Protocol.Tests

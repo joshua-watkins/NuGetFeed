@@ -1,28 +1,27 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using BaGet.Protocol.Models;
+using NuGetFeed.Models;
 
-namespace BaGet.Protocol.Internal
+namespace NuGetFeed.Search;
+
+public class NullAutocompleteClient : IAutocompleteClient
 {
-    public class NullAutocompleteClient : IAutocompleteClient
+    public Task<AutocompleteResponse> AutocompleteAsync(string query = null, int skip = 0, int take = 20, bool includePrerelease = true, bool includeSemVer2 = true, CancellationToken cancellationToken = default)
     {
-        public Task<AutocompleteResponse> AutocompleteAsync(string query = null, int skip = 0, int take = 20, bool includePrerelease = true, bool includeSemVer2 = true, CancellationToken cancellationToken = default)
+        return Task.FromResult(new AutocompleteResponse
         {
-            return Task.FromResult(new AutocompleteResponse
-            {
-                TotalHits = 0,
-                Data = new List<string>()
-            });
-        }
+            TotalHits = 0,
+            Data = new List<string>()
+        });
+    }
 
-        public Task<AutocompleteResponse> ListPackageVersionsAsync(string packageId, bool includePrerelease = true, bool includeSemVer2 = true, CancellationToken cancellationToken = default)
+    public Task<AutocompleteResponse> ListPackageVersionsAsync(string packageId, bool includePrerelease = true, bool includeSemVer2 = true, CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(new AutocompleteResponse
         {
-            return Task.FromResult(new AutocompleteResponse
-            {
-                TotalHits = 0,
-                Data = new List<string>()
-            });
-        }
+            TotalHits = 0,
+            Data = new List<string>()
+        });
     }
 }
