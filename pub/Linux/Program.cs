@@ -14,7 +14,8 @@ public class Program
         //    .AddIniFile("NuGetFeed.ini", true, true);
 
 
-
+        // --port 3333 --proxy, everything else through NuGetFeed.ini
+        // maybe "secret" --migrate/upgrade/initialize switch for updating sqlite schema file.
 
         var builder = Host.CreateDefaultBuilder(args);
         builder.ConfigureAppConfiguration((ctx, config) =>
