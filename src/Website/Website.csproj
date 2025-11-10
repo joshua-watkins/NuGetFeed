@@ -22,6 +22,14 @@
 		<PackageReference Include="RazorSlices" Version="0.9.5" />
 	</ItemGroup>
 
+	<PropertyGroup>
+		<EnableDefaultRazorSlices>false</EnableDefaultRazorSlices>
+	</PropertyGroup>
+	<ItemGroup>
+		<!-- Only treat .cshtml files in Slices directory as Razor Slices -->
+		<RazorSlice Include="Slices\**\*.cshtml" Exclude="Slices\**\_Layout.cshtml;Slices\**\_ViewImports.cshtml" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<ProjectReference Include="..\Core\Core.csproj" />
 	</ItemGroup>
