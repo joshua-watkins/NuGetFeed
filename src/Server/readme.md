@@ -29,6 +29,13 @@ Besides package push, delete, content, metadata, search and autocomplete, the se
 | `PackageDetailsUriTemplate/5.1.0` | Set `PackageDetailsUriTemplate` in appsettings.json. HTTPS only. |
 | `RepositorySignatures/4.7.0`, `4.9.0`, `5.0.0` | Set `RepositorySigning` in appsettings.json. HTTPS only. |
 
+## NuGet V2
+
+The NuGet V2 (OData) feed is not supported, and there are no plans to support it. Clients that only
+speak V2, like Chocolatey and PowerShellGet v2, can't use this server. `GET` requests under `api/v2/`
+return a 404 that points to the V3 service index. Push, delete and relist still use `api/v2/package`,
+because that's the path the V3 `PackagePublish/2.0.0` resource uses.
+
 ## Administration
 
 These endpoints aren't part of the NuGet protocol. Like push and delete, they need the

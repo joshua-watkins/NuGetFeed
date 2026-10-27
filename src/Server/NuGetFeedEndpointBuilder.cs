@@ -106,6 +106,14 @@ public class NuGetFeedEndpointBuilder
             pattern: "api/v2/package/{id}/{version}",
             defaults: new { controller = "PackagePublish", action = "Relist" },
             constraints: new { httpMethod = new HttpMethodRouteConstraint("POST") });
+
+        // The publish routes above are part of the V3 protocol despite their path. The
+        // NuGet V2 (OData) feed is not supported: tell V2 clients to use the V3 feed.
+        endpoints.MapControllerRoute(
+            name: Routes.V2FeedRouteName,
+            pattern: "api/v2/{**path}",
+            defaults: new { controller = "V2Feed", action = "NotSupported" },
+            constraints: new { httpMethod = new HttpMethodRouteConstraint("GET", "HEAD") });
     }
 
     public void MapSymbolRoutes(IEndpointRouteBuilder endpoints)

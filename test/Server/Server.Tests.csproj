@@ -37,7 +37,6 @@
   </ItemGroup>
 
   <ItemGroup>
-	  <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 	  <PackageReference Include="NuGet.Protocol" Version="7.9.0" />
     <PackageReference Include="coverlet.collector" Version="10.1.0">
       <PrivateAssets>all</PrivateAssets>

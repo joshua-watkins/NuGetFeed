@@ -4,10 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using NuGet.Versioning;
+using NuGetFeed.Serialization;
 
 namespace NuGetFeed.Upstream;
 
@@ -32,50 +32,18 @@ public class PackageDownloadsJsonSource : IPackageDownloadsSource
         var results = new Dictionary<string, Dictionary<string, long>>();
 
         using (var downloadsStream = await GetDownloadsStreamAsync())
-        using (var downloadStreamReader = new StreamReader(downloadsStream))
-        using (var jsonReader = new JsonTextReader(downloadStreamReader))
         {
             _logger.LogInformation("Parsing package downloads...");
 
-            jsonReader.Read();
+            // The document is an array of records like ["Package.Id", ["1.0.0", 123], ["2.0.0", 456]].
+            // Read one record at a time, as the whole document is too large to keep in memory.
+            var records = JsonSerializer.DeserializeAsyncEnumerable(downloadsStream, ServerJsonContext.Default.JsonElement);
 
-            while (jsonReader.Read())
+            await foreach (var record in records)
             {
-                try
+                if (!TryAddRecord(record, results))
                 {
-                    if (jsonReader.TokenType == JsonToken.StartArray)
-                    {
-                        // TODO: This line reads the entire document into memory...
-                        var record = JToken.ReadFrom(jsonReader);
-                        var id = string.Intern(record[0].ToString().ToLowerInvariant());
-
-                        // The second entry in each record should be an array of versions, if not move on to next entry.
-                        // This is a check to safe guard against invalid entries.
-                        if (record.Count() == 2 && record[1].Type != JTokenType.Array)
-                        {
-                            continue;
-                        }
-
-                        if (!results.ContainsKey(id))
-                        {
-                            results.Add(id, new Dictionary<string, long>());
-                        }
-
-                        foreach (var token in record)
-                        {
-                            if (token != null && token.Count() == 2)
-                            {
-                                var version = string.Intern(NuGetVersion.Parse(token[0].ToString()).ToNormalizedString().ToLowerInvariant());
-                                var downloads = token[1].ToObject<int>();
-
-                                results[id][version] = downloads;
-                            }
-                        }
-                    }
-                }
-                catch (JsonReaderException e)
-                {
-                    _logger.LogError(e, "Invalid entry in downloads.v1.json");
+                    _logger.LogError("Invalid entry in downloads.v1.json: {Entry}", record.GetRawText());
                 }
             }
 
@@ -83,6 +51,46 @@ public class PackageDownloadsJsonSource : IPackageDownloadsSource
         }
 
         return results;
+    }
+
+    private static bool TryAddRecord(JsonElement record, Dictionary<string, Dictionary<string, long>> results)
+    {
+        if (record.ValueKind != JsonValueKind.Array ||
+            record.GetArrayLength() == 0 ||
+            record[0].ValueKind != JsonValueKind.String)
+        {
+            return false;
+        }
+
+        // The second entry in each record should be an array of versions, if not move on to next entry.
+        // This is a check to safe guard against invalid entries.
+        if (record.GetArrayLength() == 2 && record[1].ValueKind != JsonValueKind.Array)
+        {
+            return true;
+        }
+
+        var id = string.Intern(record[0].GetString().ToLowerInvariant());
+        if (!results.TryGetValue(id, out var versions))
+        {
+            versions = new Dictionary<string, long>();
+            results.Add(id, versions);
+        }
+
+        foreach (var entry in record.EnumerateArray().Skip(1))
+        {
+            if (entry.ValueKind != JsonValueKind.Array ||
+                entry.GetArrayLength() != 2 ||
+                entry[0].ValueKind != JsonValueKind.String ||
+                !NuGetVersion.TryParse(entry[0].GetString(), out var version) ||
+                !entry[1].TryGetInt64(out var downloads))
+            {
+                return false;
+            }
+
+            versions[string.Intern(version.ToNormalizedString().ToLowerInvariant())] = downloads;
+        }
+
+        return true;
     }
 
     private async Task<Stream> GetDownloadsStreamAsync()

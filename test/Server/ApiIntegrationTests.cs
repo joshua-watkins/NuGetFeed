@@ -292,7 +292,7 @@ public class ApiIntegrationTests : IDisposable
             ""minClientVersion"": """",
             ""packageContent"": ""http://localhost/v3/package/testdata/1.2.3/testdata.1.2.3.nupkg"",
             ""projectUrl"": """",
-            ""published"": ""2020-01-01T00:00:00Z"",
+            ""published"": ""2020-01-01T00:00:00+00:00"",
             ""requireLicenseAcceptance"": false,
             ""summary"": """",
             ""tags"": [],
@@ -332,7 +332,7 @@ public class ApiIntegrationTests : IDisposable
   ],
   ""listed"": true,
   ""packageContent"": ""http://localhost/v3/package/testdata/1.2.3/testdata.1.2.3.nupkg"",
-  ""published"": ""2020-01-01T00:00:00Z"",
+  ""published"": ""2020-01-01T00:00:00+00:00"",
   ""registration"": ""http://localhost/v3/registration/testdata/index.json"",
   ""catalogEntry"": ""http://localhost/v3/catalog/data/1/testdata.1.2.3.json""
 }", json);

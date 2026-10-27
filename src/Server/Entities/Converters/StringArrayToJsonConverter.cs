@@ -1,5 +1,6 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Newtonsoft.Json;
+using NuGetFeed.Serialization;
 
 namespace NuGetFeed.Entities.Converters;
 
@@ -9,8 +10,8 @@ public class StringArrayToJsonConverter : ValueConverter<string[], string>
 
     public StringArrayToJsonConverter()
         : base(
-            v => JsonConvert.SerializeObject(v),
-            v => !string.IsNullOrEmpty(v) ? JsonConvert.DeserializeObject<string[]>(v) : new string[0])
+            v => JsonSerializer.Serialize(v, ServerJsonContext.Database.StringArray),
+            v => !string.IsNullOrEmpty(v) ? JsonSerializer.Deserialize(v, ServerJsonContext.Database.StringArray) : new string[0])
     {
     }
 }

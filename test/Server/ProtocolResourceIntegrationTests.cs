@@ -59,6 +59,25 @@ public class ProtocolResourceIntegrationTests : IDisposable
     }
 
     [Theory]
+    [InlineData("api/v2")]
+    [InlineData("api/v2/")]
+    [InlineData("api/v2/$metadata")]
+    [InlineData("api/v2/FindPackagesById()?id='Contoso.Json'")]
+    [InlineData("api/v2/package/Contoso.Json/1.0.0")]
+    public async Task V2FeedIsNotSupported(string path)
+    {
+        var client = CreateClient(out _);
+        await PushAsync(client, TestPackages.Create("Contoso.Json", "1.0.0"));
+
+        var response = await client.GetAsync(path);
+        var message = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Contains("V2 (OData) feed is not supported", message);
+        Assert.Contains("http://localhost/v3/index.json", message);
+    }
+
+    [Theory]
     [InlineData("serializer", new[] { "Contoso.Json" })]
     [InlineData("json", new[] { "Contoso.Json", "Helpers" })]
     [InlineData("tags:serialization", new[] { "Other.Package" })]

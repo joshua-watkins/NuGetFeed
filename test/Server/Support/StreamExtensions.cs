@@ -1,5 +1,7 @@
 using System.IO;
-using Newtonsoft.Json;
+using System.Text;
+using System.Text.Encodings.Web;
+using System.Text.Json;
 
 namespace NuGetFeed.Server.Tests
 {
@@ -7,18 +9,18 @@ namespace NuGetFeed.Server.Tests
     {
         public static string ToPrettifiedJson(this Stream jsonStream)
         {
-            using var writer = new StringWriter();
-            using var jsonWriter = new JsonTextWriter(writer)
+            using var document = JsonDocument.Parse(jsonStream);
+            using var output = new MemoryStream();
+            using (var writer = new Utf8JsonWriter(output, new JsonWriterOptions
             {
-                Formatting = Formatting.Indented,
-                DateTimeZoneHandling = DateTimeZoneHandling.Utc
-            };
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            }))
+            {
+                document.WriteTo(writer);
+            }
 
-            using var reader = new StreamReader(jsonStream);
-            using var jsonReader = new JsonTextReader(reader);
-
-            jsonWriter.WriteToken(jsonReader);
-            return writer.ToString();
+            return Encoding.UTF8.GetString(output.ToArray());
         }
     }
 }

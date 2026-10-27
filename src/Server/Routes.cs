@@ -7,6 +7,7 @@ public class Routes
     public const string UploadSymbolRouteName = "upload-symbol";
     public const string DeleteRouteName = "delete";
     public const string RelistRouteName = "relist";
+    public const string V2FeedRouteName = "v2-feed";
     public const string SearchRouteName = "search";
     public const string AutocompleteRouteName = "autocomplete";
     public const string DependentsRouteName = "dependents";

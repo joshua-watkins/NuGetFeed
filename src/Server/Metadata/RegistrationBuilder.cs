@@ -52,7 +52,7 @@ public class RegistrationBuilder
         {
             Type = RegistrationLeafResponse.DefaultType,
             Listed = package.Listed,
-            Published = package.Published,
+            Published = ToUtc(package.Published),
             RegistrationLeafUrl = _url.GetRegistrationLeafUrl(id, version, semVer2),
             PackageContentUrl = _url.GetPackageDownloadUrl(id, version),
             RegistrationIndexUrl = _url.GetRegistrationIndexUrl(id, semVer2),
@@ -92,7 +92,7 @@ public class RegistrationBuilder
                 ProjectUrl = package.ProjectUrlString,
                 RepositoryUrl = package.RepositoryUrlString,
                 RepositoryType = package.RepositoryType,
-                Published = package.Published.ToUniversalTime(),
+                Published = ToUtc(package.Published),
                 RequireLicenseAcceptance = package.RequireLicenseAcceptance,
                 Summary = package.Summary,
                 Tags = package.Tags,
@@ -101,4 +101,8 @@ public class RegistrationBuilder
                 Vulnerabilities = package.ToVulnerabilitiesOrNull(registration.Vulnerabilities),
             },
         };
+
+    // Packages are published in UTC, but the database doesn't keep the date's kind.
+    private static DateTimeOffset ToUtc(DateTime value)
+        => new(DateTime.SpecifyKind(value, DateTimeKind.Utc));
 }
