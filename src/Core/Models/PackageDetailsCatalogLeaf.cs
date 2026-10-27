@@ -166,4 +166,37 @@ public class PackageDetailsCatalogLeaf : CatalogLeaf
     /// </summary>
     [JsonPropertyName("iconFile")]
     public string IconFile { get; set; }
+
+    /// <summary>
+    /// The package's deprecation, if any.
+    /// </summary>
+    [JsonPropertyName("deprecation")]
+    public PackageDeprecation Deprecation { get; set; }
+
+    /// <summary>
+    /// The package types specified by the author.
+    /// </summary>
+    [JsonPropertyName("packageTypes")]
+    public List<CatalogPackageType> PackageTypes { get; set; }
+
+    /// <summary>
+    /// The known security vulnerabilities of the package.
+    /// </summary>
+    [JsonPropertyName("vulnerabilities")]
+    public List<PackageVulnerability> Vulnerabilities { get; set; }
+}
+
+/// <summary>
+/// A package type in a <see cref="PackageDetailsCatalogLeaf"/>.
+/// </summary>
+public class CatalogPackageType
+{
+    [JsonPropertyName("name")]
+    public string Name { get; set; }
+
+    /// <summary>
+    /// Only present if the author explicitly specified a version in the nuspec.
+    /// </summary>
+    [JsonPropertyName("version")]
+    public string Version { get; set; }
 }

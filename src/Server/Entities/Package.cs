@@ -77,6 +77,37 @@ public class Package
     public string NormalizedVersionString { get; set; }
     public string OriginalVersionString { get; set; }
 
+    /// <summary>
+    /// The package's SPDX license expression, if it uses one instead of a license file or URL.
+    /// </summary>
+    public string LicenseExpression { get; set; }
+
+    /// <summary>
+    /// The base64-encoded SHA-512 hash of the stored package (.nupkg).
+    /// </summary>
+    public string PackageHash { get; set; }
+
+    /// <summary>
+    /// The size of the stored package (.nupkg) in bytes.
+    /// </summary>
+    public long PackageSize { get; set; }
+
+    /// <summary>
+    /// Whether the stored package carries this server's repository signature.
+    /// </summary>
+    public bool IsRepositorySigned { get; set; }
+
+    /// <summary>
+    /// Why the package is deprecated: "Legacy", "CriticalBugs" or "Other".
+    /// Empty or null if the package isn't deprecated.
+    /// </summary>
+    public string[] DeprecationReasons { get; set; }
+    public string DeprecationMessage { get; set; }
+    public string AlternatePackageId { get; set; }
+    public string AlternatePackageVersionRange { get; set; }
+
+    public bool IsDeprecated => DeprecationReasons?.Length > 0;
+
 
     public string IconUrlString => IconUrl?.AbsoluteUri ?? string.Empty;
     public string LicenseUrlString => LicenseUrl?.AbsoluteUri ?? string.Empty;

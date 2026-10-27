@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Versioning;
 using NuGetFeed;
+using NuGetFeed.Catalog;
 using NuGetFeed.Configuration;
 using NuGetFeed.Indexing;
 using NuGetFeed.Storage;
@@ -35,6 +36,7 @@ namespace NuGetFeed.Server.Tests.Services
             _target = new PackageDeletionService(
                 _packages.Object,
                 _storage.Object,
+                Mock.Of<ICatalogService>(),
                 optionsSnapshot.Object,
                 Mock.Of<ILogger<PackageDeletionService>>());
         }

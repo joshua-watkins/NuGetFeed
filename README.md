@@ -12,7 +12,7 @@
 ## Features
 
 * This project serves to replace the abandoned NuGet.Server project by Microsoft.
-* Runs on Windows, Linux, and macOS.
+* Runs on Windows and Linux.
 * Updated to latest .NET LTS release.
 
 NuGetFeed.Core - core shared libraries - nuget package output

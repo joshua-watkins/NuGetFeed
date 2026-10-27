@@ -30,11 +30,7 @@ builder.WebHost.ConfigureKestrel(options =>
 
 builder.Services.AddNuGetFeed(feed =>
 {
-    //feed.AddMySqlDatabase();
-    //feed.AddPostgreSqlDatabase();
-    // Use SQLite as the database and store packages on the local file system.
     feed.AddSqliteDatabase();
-    //feed.AddSqlServerDatabase();
     feed.AddFileStorage();
 });
 

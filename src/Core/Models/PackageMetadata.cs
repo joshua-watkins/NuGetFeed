@@ -125,4 +125,22 @@ public class PackageMetadata
     /// </summary>
     [JsonPropertyName("title")]
     public string Title { get; set; }
+
+    /// <summary>
+    /// The package's SPDX license expression, if the package uses one.
+    /// </summary>
+    [JsonPropertyName("licenseExpression")]
+    public string LicenseExpression { get; set; }
+
+    /// <summary>
+    /// The URL to the package's readme, if the package has one.
+    /// </summary>
+    [JsonPropertyName("readmeUrl")]
+    public string ReadmeUrl { get; set; }
+
+    /// <summary>
+    /// The known security vulnerabilities of the package.
+    /// </summary>
+    [JsonPropertyName("vulnerabilities")]
+    public IReadOnlyList<PackageVulnerability> Vulnerabilities { get; set; }
 }

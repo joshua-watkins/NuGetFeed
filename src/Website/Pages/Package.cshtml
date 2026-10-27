@@ -33,6 +33,34 @@ else
                 </h1>
             </div>
 
+            @if (Model.Deprecation != null)
+            {
+                <div class="alert alert-warning package-deprecation" role="alert">
+                    <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
+                    This package @string.Join(" and ", Model.Deprecation.Reasons.Select(PackageModel.DeprecationReasonText)).
+                    @if (!string.IsNullOrEmpty(Model.Deprecation.Message))
+                    {
+                        <div>@Model.Deprecation.Message</div>
+                    }
+                    @if (Model.Deprecation.AlternatePackage != null)
+                    {
+                        <div>
+                            Suggested alternative:
+                            <a asp-page="Package" asp-route-id="@Model.Deprecation.AlternatePackage.Id" asp-route-version="@null">@Model.Deprecation.AlternatePackage.Id</a>
+                        </div>
+                    }
+                </div>
+            }
+
+            @foreach (var vulnerability in Model.Vulnerabilities)
+            {
+                <div class="alert alert-danger package-vulnerability" role="alert">
+                    <i class="ms-Icon ms-Icon--Shield" aria-hidden="true"></i>
+                    This package has a known @PackageModel.SeverityName(vulnerability.Severity) severity vulnerability,
+                    <a href="@vulnerability.AdvisoryUrl" target="_blank" rel="noopener noreferrer">@vulnerability.AdvisoryUrl</a>.
+                </div>
+            }
+
             <div class="tabbed-info" x-data="{ tabs: tabs, active: tabs[0] }">
                 <ul class="nav">
                     <template x-for="tab in tabs" :key="tab.name">
@@ -229,7 +257,7 @@ else
                     {
                         <li>
                             <i class="ms-Icon ms-Icon--Certificate"></i>
-                            <a href="@Model.LicenseUrl">License</a>
+                            <a href="@Model.LicenseUrl">@(string.IsNullOrEmpty(Model.Package.LicenseExpression) ? "License" : $"License: {Model.Package.LicenseExpression}")</a>
                         </li>
                     }
 

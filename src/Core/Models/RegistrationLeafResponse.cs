@@ -53,4 +53,10 @@ public class RegistrationLeafResponse
     /// </summary>
     [JsonPropertyName("registration")]
     public string RegistrationIndexUrl { get; set; }
+
+    /// <summary>
+    /// The URL to the package's latest catalog leaf, if the server has a catalog.
+    /// </summary>
+    [JsonPropertyName("catalogEntry")]
+    public string CatalogEntryUrl { get; set; }
 }

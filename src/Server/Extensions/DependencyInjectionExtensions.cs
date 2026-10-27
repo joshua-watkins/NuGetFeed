@@ -8,6 +8,9 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using NuGetFeed;
 using NuGetFeed.Authentication;
+using NuGetFeed.Catalog;
+using NuGetFeed.Signing;
+using NuGetFeed.Vulnerabilities;
 using NuGetFeed.Configuration;
 using NuGetFeed.Content;
 using NuGetFeed.Entities;
@@ -110,6 +113,10 @@ public static partial class DependencyInjectionExtensions
         services.TryAddTransient<IServiceIndexService, NuGetFeedServiceIndex>();
         services.TryAddTransient<ISymbolIndexingService, SymbolIndexingService>();
         services.TryAddTransient<ISymbolStorageService, SymbolStorageService>();
+        services.TryAddTransient<ICatalogService, CatalogService>();
+        services.TryAddTransient<IVulnerabilityService, VulnerabilityService>();
+        services.TryAddTransient<IPackageDeprecationService, PackageDeprecationService>();
+        services.TryAddSingleton<IRepositorySigningService, RepositorySigningService>();
 
         services.TryAddTransient<DatabaseSearchService>();
         services.TryAddTransient<FileStorageService>();

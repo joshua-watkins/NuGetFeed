@@ -1,4 +1,5 @@
 using NuGetFeed;
+using NuGetFeed.Entities;
 using NuGetFeed.Metadata;
 using NuGetFeed.Models;
 using System;
@@ -16,7 +17,7 @@ public class SearchResponseBuilder : ISearchResponseBuilder
         _url = url ?? throw new ArgumentNullException(nameof(url));
     }
 
-    public SearchResponse BuildSearch(IReadOnlyList<PackageRegistration> packageRegistrations)
+    public SearchResponse BuildSearch(IReadOnlyList<PackageRegistration> packageRegistrations, long totalHits, bool includeSemVer2)
     {
         var result = new List<SearchResult>();
 
@@ -39,8 +40,11 @@ public class SearchResponseBuilder : ISearchResponseBuilder
                 Authors = latest.Authors,
                 IconUrl = iconUrl,
                 LicenseUrl = licenseUrl,
+                PackageTypes = (latest.PackageTypes ?? new List<PackageType>())
+                    .Select(t => new SearchResultPackageType { Name = t.Name })
+                    .ToList(),
                 ProjectUrl = latest.ProjectUrlString,
-                RegistrationIndexUrl = _url.GetRegistrationIndexUrl(latest.Id),
+                RegistrationIndexUrl = _url.GetRegistrationIndexUrl(latest.Id, includeSemVer2),
                 Summary = latest.Summary,
                 Tags = latest.Tags,
                 Title = latest.Title,
@@ -48,27 +52,29 @@ public class SearchResponseBuilder : ISearchResponseBuilder
                 Versions = versions
                     .Select(p => new SearchResultVersion
                     {
-                        RegistrationLeafUrl = _url.GetRegistrationLeafUrl(p.Id, p.Version),
+                        RegistrationLeafUrl = _url.GetRegistrationLeafUrl(p.Id, p.Version, includeSemVer2),
                         Version = p.Version.ToFullString(),
                         Downloads = p.Downloads,
                     })
                     .ToList(),
+                Deprecation = latest.ToDeprecationOrNull(),
+                Vulnerabilities = latest.ToVulnerabilitiesOrNull(packageRegistration.Vulnerabilities),
             });
         }
 
         return new SearchResponse
         {
-            TotalHits = result.Count,
+            TotalHits = totalHits,
             Data = result,
-            Context = SearchContext.Default(_url.GetPackageMetadataResourceUrl()),
+            Context = SearchContext.Default(_url.GetPackageMetadataResourceUrl(includeSemVer2)),
         };
     }
 
-    public AutocompleteResponse BuildAutocomplete(IReadOnlyList<string> data)
+    public AutocompleteResponse BuildAutocomplete(IReadOnlyList<string> data, long totalHits)
     {
         return new AutocompleteResponse
         {
-            TotalHits = data.Count,
+            TotalHits = totalHits,
             Data = data,
             Context = AutocompleteContext.Default
         };

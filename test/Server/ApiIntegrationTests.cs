@@ -62,6 +62,11 @@ public class ApiIntegrationTests : IDisposable
       ],
       ""iconUrl"": """",
       ""licenseUrl"": """",
+      ""packageTypes"": [
+        {
+          ""name"": ""Dependency""
+        }
+      ],
       ""projectUrl"": """",
       ""registration"": ""http://localhost/v3/registration/testdata/index.json"",
       ""summary"": """",
@@ -269,6 +274,7 @@ public class ApiIntegrationTests : IDisposable
             ],
             ""releaseNotes"": """",
             ""repositoryUrl"": """",
+            ""@id"": ""http://localhost/v3/catalog/data/1/testdata.1.2.3.json"",
             ""id"": ""TestData"",
             ""version"": ""1.2.3"",
             ""authors"": ""Test author"",
@@ -327,7 +333,8 @@ public class ApiIntegrationTests : IDisposable
   ""listed"": true,
   ""packageContent"": ""http://localhost/v3/package/testdata/1.2.3/testdata.1.2.3.nupkg"",
   ""published"": ""2020-01-01T00:00:00Z"",
-  ""registration"": ""http://localhost/v3/registration/testdata/index.json""
+  ""registration"": ""http://localhost/v3/registration/testdata/index.json"",
+  ""catalogEntry"": ""http://localhost/v3/catalog/data/1/testdata.1.2.3.json""
 }", json);
     }
 

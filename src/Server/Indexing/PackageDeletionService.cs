@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Versioning;
 using NuGetFeed;
+using NuGetFeed.Catalog;
 using NuGetFeed.Configuration;
 using NuGetFeed.Storage;
 
@@ -14,17 +15,20 @@ public class PackageDeletionService : IPackageDeletionService
 {
     private readonly IPackageDatabase _packages;
     private readonly IPackageStorageService _storage;
+    private readonly ICatalogService _catalog;
     private readonly NuGetFeedOptions _options;
     private readonly ILogger<PackageDeletionService> _logger;
 
     public PackageDeletionService(
         IPackageDatabase packages,
         IPackageStorageService storage,
+        ICatalogService catalog,
         IOptionsSnapshot<NuGetFeedOptions> options,
         ILogger<PackageDeletionService> logger)
     {
         _packages = packages ?? throw new ArgumentNullException(nameof(packages));
         _storage = storage ?? throw new ArgumentNullException(nameof(storage));
+        _catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
         _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -57,7 +61,34 @@ public class PackageDeletionService : IPackageDeletionService
 
         _logger.LogInformation("Unlisted package {PackageId} {PackageVersion}", id, version);
 
+        await AddToCatalogAsync(id, version, cancellationToken);
+
         return true;
+    }
+
+    public async Task<bool> TryRelistPackageAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Relisting package {PackageId} {PackageVersion}...", id, version);
+
+        if (!await _packages.RelistPackageAsync(id, version, cancellationToken))
+        {
+            _logger.LogWarning("Could not find package {PackageId} {PackageVersion}", id, version);
+
+            return false;
+        }
+
+        await AddToCatalogAsync(id, version, cancellationToken);
+
+        return true;
+    }
+
+    private async Task AddToCatalogAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
+    {
+        var package = await _packages.FindOrNullAsync(id, version, includeUnlisted: true, cancellationToken);
+        if (package != null)
+        {
+            await _catalog.AddPackageDetailsAsync(new[] { package }, cancellationToken);
+        }
     }
 
     private async Task<bool> TryHardDeletePackageAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
@@ -68,7 +99,11 @@ public class PackageDeletionService : IPackageDeletionService
             version);
 
         var found = await _packages.HardDeletePackageAsync(id, version, cancellationToken);
-        if (!found)
+        if (found)
+        {
+            await _catalog.AddPackageDeleteAsync(id, version, cancellationToken);
+        }
+        else
         {
             _logger.LogWarning(
                 "Could not find package {PackageId} {PackageVersion} in the database",

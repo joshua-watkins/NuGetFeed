@@ -21,11 +21,11 @@ public class PackageMetadataController : Controller
         _metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
     }
 
-    // GET v3/registration/{id}.json
+    // GET v3/registration/{id}/index.json or v3/registration-semver2/{id}/index.json
     [HttpGet]
-    public async Task<ActionResult<NuGetFeedRegistrationIndexResponse>> RegistrationIndexAsync(string id, CancellationToken cancellationToken)
+    public async Task<ActionResult<NuGetFeedRegistrationIndexResponse>> RegistrationIndexAsync(string id, bool semVer2, CancellationToken cancellationToken)
     {
-        var index = await _metadata.GetRegistrationIndexOrNullAsync(id, cancellationToken);
+        var index = await _metadata.GetRegistrationIndexOrNullAsync(id, semVer2, cancellationToken);
         if (index == null)
         {
             return NotFound();
@@ -34,16 +34,16 @@ public class PackageMetadataController : Controller
         return index;
     }
 
-    // GET v3/registration/{id}/{version}.json
+    // GET v3/registration/{id}/{version}.json or v3/registration-semver2/{id}/{version}.json
     [HttpGet]
-    public async Task<ActionResult<RegistrationLeafResponse>> RegistrationLeafAsync(string id, string version, CancellationToken cancellationToken)
+    public async Task<ActionResult<RegistrationLeafResponse>> RegistrationLeafAsync(string id, string version, bool semVer2, CancellationToken cancellationToken)
     {
         if (!NuGetVersion.TryParse(version, out var nugetVersion))
         {
             return NotFound();
         }
 
-        var leaf = await _metadata.GetRegistrationLeafOrNullAsync(id, nugetVersion, cancellationToken);
+        var leaf = await _metadata.GetRegistrationLeafOrNullAsync(id, nugetVersion, semVer2, cancellationToken);
         if (leaf == null)
         {
             return NotFound();

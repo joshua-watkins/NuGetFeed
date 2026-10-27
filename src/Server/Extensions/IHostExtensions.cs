@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using NuGetFeed.Catalog;
 using NuGetFeed.Configuration;
 using NuGetFeed.Entities;
 using NuGetFeed.Validation;
@@ -67,9 +68,16 @@ public static class IHostExtensions
             using (var scope = host.Services.CreateScope())
             {
                 var ctx = scope.ServiceProvider.GetService<IContext>();
-                if (ctx != null)
+                if (ctx != null && ctx is not NullContext)
                 {
                     await ctx.RunMigrationsAsync(cancellationToken);
+
+                    // Packages indexed before the catalog existed are added to it once.
+                    var catalog = scope.ServiceProvider.GetService<ICatalogService>();
+                    if (catalog != null)
+                    {
+                        await catalog.InitializeAsync(cancellationToken);
+                    }
                 }
             }
         }

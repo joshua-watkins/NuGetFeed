@@ -2,7 +2,6 @@ using NuGetFeed;
 using NuGetFeed.Entities;
 using NuGetFeed.Models;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace NuGetFeed.Metadata;
@@ -19,13 +18,14 @@ public class RegistrationBuilder
     public virtual NuGetFeedRegistrationIndexResponse BuildIndex(PackageRegistration registration)
     {
         var sortedPackages = registration.Packages.OrderBy(p => p.Version).ToList();
+        var indexUrl = _url.GetRegistrationIndexUrl(registration.PackageId, registration.SemVer2);
 
         // TODO: Paging of registration items.
         // "Un-paged" example: https://api.nuget.org/v3/registration3/newtonsoft.json/index.json
         // Paged example: https://api.nuget.org/v3/registration3/fake/index.json
         return new NuGetFeedRegistrationIndexResponse
         {
-            RegistrationIndexUrl = _url.GetRegistrationIndexUrl(registration.PackageId),
+            RegistrationIndexUrl = indexUrl,
             Type = RegistrationIndexResponse.DefaultType,
             Count = 1,
             TotalDownloads = registration.Packages.Sum(p => p.Downloads),
@@ -33,17 +33,17 @@ public class RegistrationBuilder
             {
                 new NuGetFeedRegistrationIndexPage
                 {
-                    RegistrationPageUrl = _url.GetRegistrationIndexUrl(registration.PackageId),
+                    RegistrationPageUrl = indexUrl,
                     Count = registration.Packages.Count,
                     Lower = sortedPackages.First().Version.ToNormalizedString().ToLowerInvariant(),
                     Upper = sortedPackages.Last().Version.ToNormalizedString().ToLowerInvariant(),
-                    ItemsOrNull = sortedPackages.Select(ToRegistrationIndexPageItem).ToList(),
+                    ItemsOrNull = sortedPackages.Select(p => ToRegistrationIndexPageItem(p, registration)).ToList(),
                 }
             }
         };
     }
 
-    public virtual RegistrationLeafResponse BuildLeaf(Package package)
+    public virtual RegistrationLeafResponse BuildLeaf(Package package, bool semVer2 = false, string catalogLeafUrl = null)
     {
         var id = package.Id;
         var version = package.Version;
@@ -53,23 +53,26 @@ public class RegistrationBuilder
             Type = RegistrationLeafResponse.DefaultType,
             Listed = package.Listed,
             Published = package.Published,
-            RegistrationLeafUrl = _url.GetRegistrationLeafUrl(id, version),
+            RegistrationLeafUrl = _url.GetRegistrationLeafUrl(id, version, semVer2),
             PackageContentUrl = _url.GetPackageDownloadUrl(id, version),
-            RegistrationIndexUrl = _url.GetRegistrationIndexUrl(id)
+            RegistrationIndexUrl = _url.GetRegistrationIndexUrl(id, semVer2),
+            CatalogEntryUrl = catalogLeafUrl,
         };
     }
 
-    private NuGetFeedRegistrationIndexPageItem ToRegistrationIndexPageItem(Package package) =>
+    private NuGetFeedRegistrationIndexPageItem ToRegistrationIndexPageItem(Package package, PackageRegistration registration) =>
         new NuGetFeedRegistrationIndexPageItem
         {
-            RegistrationLeafUrl = _url.GetRegistrationLeafUrl(package.Id, package.Version),
+            RegistrationLeafUrl = _url.GetRegistrationLeafUrl(package.Id, package.Version, registration.SemVer2),
             PackageContentUrl = _url.GetPackageDownloadUrl(package.Id, package.Version),
             PackageMetadata = new NuGetFeedPackageMetadata
             {
+                CatalogLeafUrl = registration.GetCatalogLeafUrlOrNull(package),
                 PackageId = package.Id,
                 Version = package.Version.ToFullString(),
                 Authors = string.Join(", ", package.Authors),
                 Description = package.Description,
+                Deprecation = package.ToDeprecationOrNull(),
                 Downloads = package.Downloads,
                 HasReadme = package.HasReadme,
                 IconUrl = package.HasEmbeddedIcon
@@ -79,8 +82,10 @@ public class RegistrationBuilder
                 LicenseUrl = package.HasEmbeddedLicense
                     ? _url.GetPackageLicenseDownloadUrl(package.Id, package.Version, package.LicenseIsMarkDown)
                     : package.LicenseUrlString,
+                LicenseExpression = package.LicenseExpression,
                 Listed = package.Listed,
                 MinClientVersion = package.MinClientVersion,
+                ReadmeUrl = package.HasReadme ? _url.GetPackageReadmeDownloadUrl(package.Id, package.Version) : null,
                 ReleaseNotes = package.ReleaseNotes,
                 PackageContentUrl = _url.GetPackageDownloadUrl(package.Id, package.Version),
                 PackageTypes = package.PackageTypes.Select(t => t.Name).ToList(),
@@ -92,30 +97,8 @@ public class RegistrationBuilder
                 Summary = package.Summary,
                 Tags = package.Tags,
                 Title = package.Title,
-                DependencyGroups = ToDependencyGroups(package)
+                DependencyGroups = package.ToDependencyGroups(),
+                Vulnerabilities = package.ToVulnerabilitiesOrNull(registration.Vulnerabilities),
             },
         };
-
-    private IReadOnlyList<DependencyGroupItem> ToDependencyGroups(Package package)
-    {
-        return package.Dependencies
-            .GroupBy(d => d.TargetFramework)
-            .Select(group => new DependencyGroupItem
-            {
-                TargetFramework = group.Key,
-
-                // A package that supports a target framework but does not have dependencies while on
-                // that target framework is represented by a fake dependency with a null "Id" and "VersionRange".
-                // This fake dependency should not be included in the output.
-                Dependencies = group
-                    .Where(d => d.Id != null && d.VersionRange != null)
-                    .Select(d => new DependencyItem
-                    {
-                        Id = d.Id,
-                        Range = d.VersionRange
-                    })
-                    .ToList()
-            })
-            .ToList();
-    }
 }

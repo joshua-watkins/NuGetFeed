@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Options;
 using NuGet.Versioning;
+using NuGetFeed.Configuration;
 using System;
 
 namespace NuGetFeed;
@@ -10,11 +12,16 @@ public class NuGetFeedUrlGenerator : IUrlGenerator
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly LinkGenerator _linkGenerator;
+    private readonly IOptions<NuGetFeedOptions> _options;
 
-    public NuGetFeedUrlGenerator(IHttpContextAccessor httpContextAccessor, LinkGenerator linkGenerator)
+    public NuGetFeedUrlGenerator(
+        IHttpContextAccessor httpContextAccessor,
+        LinkGenerator linkGenerator,
+        IOptions<NuGetFeedOptions> options)
     {
         _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
         _linkGenerator = linkGenerator ?? throw new ArgumentNullException(nameof(linkGenerator));
+        _options = options ?? throw new ArgumentNullException(nameof(options));
     }
 
     public string GetServiceIndexUrl()
@@ -30,9 +37,9 @@ public class NuGetFeedUrlGenerator : IUrlGenerator
         return AbsoluteUrl("v3/package");
     }
 
-    public string GetPackageMetadataResourceUrl()
+    public string GetPackageMetadataResourceUrl(bool semVer2 = false)
     {
-        return AbsoluteUrl("v3/registration");
+        return AbsoluteUrl(semVer2 ? "v3/registration-semver2" : "v3/registration");
     }
 
     public string GetPackagePublishResourceUrl()
@@ -67,11 +74,11 @@ public class NuGetFeedUrlGenerator : IUrlGenerator
             values: null);
     }
 
-    public string GetRegistrationIndexUrl(string id)
+    public string GetRegistrationIndexUrl(string id, bool semVer2 = false)
     {
         return _linkGenerator.GetUriByRouteValues(
             _httpContextAccessor.HttpContext,
-            Routes.RegistrationIndexRouteName,
+            semVer2 ? Routes.RegistrationSemVer2IndexRouteName : Routes.RegistrationIndexRouteName,
             values: new { Id = id.ToLowerInvariant() });
     }
 
@@ -81,11 +88,11 @@ public class NuGetFeedUrlGenerator : IUrlGenerator
         throw new NotImplementedException();
     }
 
-    public string GetRegistrationLeafUrl(string id, NuGetVersion version)
+    public string GetRegistrationLeafUrl(string id, NuGetVersion version, bool semVer2 = false)
     {
         return _linkGenerator.GetUriByRouteValues(
             _httpContextAccessor.HttpContext,
-            Routes.RegistrationLeafRouteName,
+            semVer2 ? Routes.RegistrationSemVer2LeafRouteName : Routes.RegistrationLeafRouteName,
             values: new
             {
                 Id = id.ToLowerInvariant(),
@@ -188,6 +195,65 @@ public class NuGetFeedUrlGenerator : IUrlGenerator
             _httpContextAccessor.HttpContext,
             Routes.DependentsRouteName,
             values: null);
+    }
+
+    public string GetPackageReadmeDownloadUrl(string id, NuGetVersion version)
+    {
+        return _linkGenerator.GetUriByRouteValues(
+            _httpContextAccessor.HttpContext,
+            Routes.PackageDownloadReadmeRouteName,
+            values: new
+            {
+                Id = id.ToLowerInvariant(),
+                Version = version.ToNormalizedString().ToLowerInvariant(),
+            });
+    }
+
+    public string GetCatalogIndexUrl()
+    {
+        return AbsoluteUrl("v3/catalog/index.json");
+    }
+
+    public string GetCatalogPageUrl(int page)
+    {
+        return AbsoluteUrl($"v3/catalog/page{page}.json");
+    }
+
+    public string GetCatalogLeafUrl(int key, string id, string version)
+    {
+        return AbsoluteUrl($"v3/catalog/data/{key}/{Uri.EscapeDataString(id.ToLowerInvariant())}.{Uri.EscapeDataString(version.ToLowerInvariant())}.json");
+    }
+
+    public string GetPackageDetailsUriTemplate()
+    {
+        var template = _options.Value.PackageDetailsUriTemplate;
+        if (string.IsNullOrEmpty(template)) return null;
+
+        // An absolute template points somewhere else, like a separately hosted website.
+        // A relative one is resolved against this server's address.
+        return Uri.IsWellFormedUriString(template, UriKind.Absolute)
+            ? template
+            : AbsoluteUrl(template.TrimStart('/'));
+    }
+
+    public string GetRepositorySignaturesUrl(string resourceVersion)
+    {
+        return AbsoluteUrl($"v3/repository-signatures/{resourceVersion}/index.json");
+    }
+
+    public string GetRepositorySigningCertificateUrl(string sha256Fingerprint)
+    {
+        return AbsoluteUrl($"v3/repository-signatures/certificates/{sha256Fingerprint}.crt");
+    }
+
+    public string GetVulnerabilityIndexUrl()
+    {
+        return AbsoluteUrl("v3/vulnerabilities/index.json");
+    }
+
+    public string GetVulnerabilityFileUrl(string name)
+    {
+        return AbsoluteUrl($"v3/vulnerabilities/{name}.json");
     }
 
     private string AbsoluteUrl(string relativePath)

@@ -3,7 +3,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using NuGetFeed;
+using NuGetFeed.Catalog;
 using NuGetFeed.Configuration;
+using NuGetFeed.Signing;
 using NuGetFeed.Extensions;
 using NuGetFeed.Indexing;
 using NuGetFeed.Search;
@@ -31,6 +33,9 @@ namespace NuGetFeed.Server.Tests.Services
                 _packages.Object,
                 _storage.Object,
                 _search.Object,
+                Mock.Of<ICatalogService>(),
+                Mock.Of<IRepositorySigningService>(),
+                Mock.Of<IUrlGenerator>(),
                 _time.Object,
                 Mock.Of<IOptionsSnapshot<NuGetFeedOptions>>(),
                 Mock.Of<ILogger<PackageIndexingService>>());

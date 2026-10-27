@@ -53,7 +53,7 @@ namespace NuGetFeed.Server.Tests
         {
             var index = await _repository.GetResourceAsync<ServiceIndexResourceV3>();
 
-            Assert.Equal(14, index.Entries.Count);
+            Assert.Equal(17, index.Entries.Count);
 
             Assert.NotEmpty(index.GetServiceEntries("PackageBaseAddress/3.0.0"));
             Assert.NotEmpty(index.GetServiceEntries("PackagePublish/2.0.0"));

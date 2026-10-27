@@ -55,6 +55,30 @@ public class PackageModel : PageModel
     public string LicenseUrl { get; private set; }
     public string PackageDownloadUrl { get; private set; }
 
+    public PackageDeprecation Deprecation => Package?.Deprecation;
+    public IReadOnlyList<PackageVulnerability> Vulnerabilities => Package?.Vulnerabilities ?? Array.Empty<PackageVulnerability>();
+
+    /// <summary>
+    /// Describes a vulnerability severity the way nuget.org does.
+    /// </summary>
+    public static string SeverityName(string severity) => severity switch
+    {
+        "1" => "moderate",
+        "2" => "high",
+        "3" => "critical",
+        _ => "low",
+    };
+
+    /// <summary>
+    /// Describes a deprecation reason the way nuget.org does.
+    /// </summary>
+    public static string DeprecationReasonText(string reason) => reason switch
+    {
+        "Legacy" => "is no longer maintained",
+        "CriticalBugs" => "has critical bugs",
+        _ => "is deprecated for other reasons",
+    };
+
     public async Task OnGetAsync(string id, string version, CancellationToken cancellationToken)
     {
         var packages = await _packages.GetPackageMetadataAsync(id, cancellationToken);

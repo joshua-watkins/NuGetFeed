@@ -96,4 +96,16 @@ public class SearchResult
     /// </summary>
     [JsonPropertyName("versions")]
     public IReadOnlyList<SearchResultVersion> Versions { get; set; }
+
+    /// <summary>
+    /// The deprecation of the matched package's latest version, if any.
+    /// </summary>
+    [JsonPropertyName("deprecation")]
+    public PackageDeprecation Deprecation { get; set; }
+
+    /// <summary>
+    /// The known security vulnerabilities of the matched package's latest version.
+    /// </summary>
+    [JsonPropertyName("vulnerabilities")]
+    public IReadOnlyList<PackageVulnerability> Vulnerabilities { get; set; }
 }

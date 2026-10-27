@@ -14,6 +14,69 @@ public class NuGetFeedEndpointBuilder
         MapSearchRoutes(endpoints);
         MapPackageMetadataRoutes(endpoints);
         MapPackageContentRoutes(endpoints);
+        MapCatalogRoutes(endpoints);
+        MapDeprecationRoutes(endpoints);
+        MapVulnerabilityRoutes(endpoints);
+        MapRepositorySignatureRoutes(endpoints);
+    }
+
+    public void MapCatalogRoutes(IEndpointRouteBuilder endpoints)
+    {
+        endpoints.MapControllerRoute(
+            name: Routes.CatalogIndexRouteName,
+            pattern: "v3/catalog/index.json",
+            defaults: new { controller = "Catalog", action = "Index" });
+
+        endpoints.MapControllerRoute(
+            name: Routes.CatalogPageRouteName,
+            pattern: "v3/catalog/page{page:int}.json",
+            defaults: new { controller = "Catalog", action = "Page" });
+
+        endpoints.MapControllerRoute(
+            name: Routes.CatalogLeafRouteName,
+            pattern: "v3/catalog/data/{key:int}/{name}",
+            defaults: new { controller = "Catalog", action = "Leaf" });
+    }
+
+    public void MapDeprecationRoutes(IEndpointRouteBuilder endpoints)
+    {
+        // Not part of the NuGet protocol: lets administrators deprecate packages.
+        endpoints.MapControllerRoute(
+            name: Routes.DeprecationRouteName,
+            pattern: "api/package/{id}/{version}/deprecation",
+            defaults: new { controller = "PackageDeprecation", action = "Deprecation" });
+    }
+
+    public void MapVulnerabilityRoutes(IEndpointRouteBuilder endpoints)
+    {
+        // Not part of the NuGet protocol: lets administrators manage known vulnerabilities.
+        endpoints.MapControllerRoute(
+            name: Routes.VulnerabilitiesRouteName,
+            pattern: "api/vulnerabilities",
+            defaults: new { controller = "Vulnerability", action = "Advisories" });
+
+        endpoints.MapControllerRoute(
+            name: Routes.VulnerabilityIndexRouteName,
+            pattern: "v3/vulnerabilities/index.json",
+            defaults: new { controller = "Vulnerability", action = "Index" });
+
+        endpoints.MapControllerRoute(
+            name: Routes.VulnerabilityFileRouteName,
+            pattern: "v3/vulnerabilities/{name}.json",
+            defaults: new { controller = "Vulnerability", action = "VulnerabilityFile" });
+    }
+
+    public void MapRepositorySignatureRoutes(IEndpointRouteBuilder endpoints)
+    {
+        endpoints.MapControllerRoute(
+            name: Routes.RepositorySignaturesRouteName,
+            pattern: "v3/repository-signatures/{resourceVersion}/index.json",
+            defaults: new { controller = "RepositorySignatures", action = "Index" });
+
+        endpoints.MapControllerRoute(
+            name: Routes.RepositorySigningCertificateRouteName,
+            pattern: "v3/repository-signatures/certificates/{fingerprint}.crt",
+            defaults: new { controller = "RepositorySignatures", action = "Certificate" });
     }
 
     public void MapServiceIndexRoutes(IEndpointRouteBuilder endpoints)
@@ -94,6 +157,17 @@ public class NuGetFeedEndpointBuilder
             name: Routes.RegistrationLeafRouteName,
             pattern: "v3/registration/{id}/{version}.json",
             defaults: new { controller = "PackageMetadata", action = "RegistrationLeaf" });
+
+        // RegistrationsBaseUrl/3.6.0 includes SemVer 2.0.0 packages. The other variants must not.
+        endpoints.MapControllerRoute(
+           name: Routes.RegistrationSemVer2IndexRouteName,
+           pattern: "v3/registration-semver2/{id}/index.json",
+           defaults: new { controller = "PackageMetadata", action = "RegistrationIndex", semVer2 = true });
+
+        endpoints.MapControllerRoute(
+            name: Routes.RegistrationSemVer2LeafRouteName,
+            pattern: "v3/registration-semver2/{id}/{version}.json",
+            defaults: new { controller = "PackageMetadata", action = "RegistrationLeaf", semVer2 = true });
     }
 
     public void MapPackageContentRoutes(IEndpointRouteBuilder endpoints)

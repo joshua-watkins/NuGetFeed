@@ -21,6 +21,12 @@ public class CatalogPage
     public DateTimeOffset CommitTimestamp { get; set; }
 
     /// <summary>
+    /// A unique ID associated with the most recent commit in this page.
+    /// </summary>
+    [JsonPropertyName("commitId")]
+    public string CommitId { get; set; }
+
+    /// <summary>
     /// The number of items in the page.
     /// </summary>
     [JsonPropertyName("count")]

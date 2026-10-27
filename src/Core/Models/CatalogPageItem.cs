@@ -19,6 +19,12 @@ public class CatalogPageItem
     public string CatalogPageUrl { get; set; }
 
     /// <summary>
+    /// A unique ID associated with the most recent commit in this page.
+    /// </summary>
+    [JsonPropertyName("commitId")]
+    public string CommitId { get; set; }
+
+    /// <summary>
     /// A timestamp of the most recent commit in this page.
     /// </summary>
     [JsonPropertyName("commitTimeStamp")]

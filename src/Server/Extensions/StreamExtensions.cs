@@ -45,6 +45,29 @@ public static class StreamExtensions
         return result;
     }
 
+    /// <summary>
+    /// Computes the stream's base64-encoded SHA-512 hash and its length, reading from its current position.
+    /// </summary>
+    public static async Task<(string Hash, long Size)> ComputeSha512Async(
+        this Stream content,
+        CancellationToken cancellationToken = default)
+    {
+        using var sha512 = SHA512.Create();
+
+        var buffer = new byte[DefaultCopyBufferSize];
+        long size = 0;
+        int read;
+        while ((read = await content.ReadAsync(buffer, cancellationToken)) > 0)
+        {
+            sha512.TransformBlock(buffer, 0, read, null, 0);
+            size += read;
+        }
+
+        sha512.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+
+        return (Convert.ToBase64String(sha512.Hash), size);
+    }
+
     public static bool Matches(this Stream content, Stream target)
     {
         using (var sha256 = SHA256.Create())

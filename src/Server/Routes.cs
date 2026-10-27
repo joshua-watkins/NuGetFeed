@@ -12,6 +12,17 @@ public class Routes
     public const string DependentsRouteName = "dependents";
     public const string RegistrationIndexRouteName = "registration-index";
     public const string RegistrationLeafRouteName = "registration-leaf";
+    public const string RegistrationSemVer2IndexRouteName = "registration-semver2-index";
+    public const string RegistrationSemVer2LeafRouteName = "registration-semver2-leaf";
+    public const string CatalogIndexRouteName = "catalog-index";
+    public const string CatalogPageRouteName = "catalog-page";
+    public const string CatalogLeafRouteName = "catalog-leaf";
+    public const string DeprecationRouteName = "deprecation";
+    public const string VulnerabilitiesRouteName = "vulnerabilities";
+    public const string VulnerabilityIndexRouteName = "vulnerability-index";
+    public const string VulnerabilityFileRouteName = "vulnerability-file";
+    public const string RepositorySignaturesRouteName = "repository-signatures";
+    public const string RepositorySigningCertificateRouteName = "repository-signing-certificate";
     public const string PackageVersionsRouteName = "package-versions";
     public const string PackageDownloadRouteName = "package-download";
     public const string PackageDownloadManifestRouteName = "package-download-manifest";

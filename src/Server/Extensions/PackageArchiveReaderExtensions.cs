@@ -105,6 +105,7 @@ public static class PackageArchiveReaderExtensions
             IsPrerelease = nuspec.GetVersion().IsPrerelease,
             Language = nuspec.GetLanguage() ?? string.Empty,
             LicenseIsMarkDown = packageReader.GetLicenseIsMarkDown(),
+            LicenseExpression = GetLicenseExpression(nuspec),
             ReleaseNotes = nuspec.GetReleaseNotes() ?? string.Empty,
             Listed = true,
             MinClientVersion = nuspec.GetMinClientVersion()?.ToNormalizedString() ?? string.Empty,
@@ -146,6 +147,20 @@ public static class PackageArchiveReaderExtensions
         }
 
         return SemVerLevel.Unknown;
+    }
+
+    private static string GetLicenseExpression(NuspecReader nuspec)
+    {
+        try
+        {
+            var license = nuspec.GetLicenseMetadata();
+
+            return license?.Type == LicenseType.Expression ? license.License : null;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private static Uri ParseUri(string uriString)

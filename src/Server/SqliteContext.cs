@@ -63,5 +63,17 @@ public class SqliteContext : AbstractContext<SqliteContext>
         builder.Entity<TargetFramework>()
             .Property(f => f.Moniker)
             .HasColumnType("TEXT COLLATE NOCASE");
+
+        builder.Entity<VulnerabilityAdvisory>()
+            .Property(a => a.PackageId)
+            .HasColumnType("TEXT COLLATE NOCASE");
+
+        builder.Entity<CatalogEntry>()
+            .Property(e => e.PackageId)
+            .HasColumnType("TEXT COLLATE NOCASE");
+
+        builder.Entity<CatalogEntry>()
+            .Property(e => e.PackageVersion)
+            .HasColumnType("TEXT COLLATE NOCASE");
     }
 }

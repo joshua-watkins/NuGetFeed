@@ -11,6 +11,10 @@ public interface IContext
 
     DbSet<Package> Packages { get; set; }
 
+    DbSet<VulnerabilityAdvisory> VulnerabilityAdvisories { get; set; }
+
+    DbSet<CatalogEntry> CatalogEntries { get; set; }
+
     /// <summary>
     /// Check whether a <see cref="DbUpdateException"/> is due to a SQL unique constraint violation.
     /// </summary>

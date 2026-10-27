@@ -12,6 +12,10 @@ public class NullContext : IContext
 
     public DbSet<Package> Packages { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
+    public DbSet<VulnerabilityAdvisory> VulnerabilityAdvisories { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+    public DbSet<CatalogEntry> CatalogEntries { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
     public bool SupportsLimitInSubqueries => throw new NotImplementedException();
 
     public bool IsUniqueConstraintViolationException(DbUpdateException exception)

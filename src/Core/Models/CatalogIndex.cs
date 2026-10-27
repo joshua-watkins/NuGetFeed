@@ -15,6 +15,12 @@ namespace NuGetFeed.Models;
 public class CatalogIndex
 {
     /// <summary>
+    /// A unique ID associated with the most recent commit.
+    /// </summary>
+    [JsonPropertyName("commitId")]
+    public string CommitId { get; set; }
+
+    /// <summary>
     /// A timestamp of the most recent commit.
     /// </summary>
     [JsonPropertyName("commitTimeStamp")]

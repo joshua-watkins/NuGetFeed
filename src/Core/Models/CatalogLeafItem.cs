@@ -31,6 +31,12 @@ public class CatalogLeafItem : ICatalogLeafItem
     public DateTimeOffset CommitTimestamp { get; set; }
 
     /// <summary>
+    /// The commit ID associated with this catalog item.
+    /// </summary>
+    [JsonPropertyName("commitId")]
+    public string CommitId { get; set; }
+
+    /// <summary>
     /// The package ID of the catalog item.
     /// </summary>
     [JsonPropertyName("nuget:id")]

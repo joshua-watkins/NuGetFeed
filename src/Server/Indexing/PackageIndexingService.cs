@@ -2,10 +2,12 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Packaging;
 using NuGetFeed;
+using NuGetFeed.Catalog;
 using NuGetFeed.Configuration;
 using NuGetFeed.Entities;
 using NuGetFeed.Extensions;
 using NuGetFeed.Search;
+using NuGetFeed.Signing;
 using NuGetFeed.Storage;
 using System;
 using System.IO;
@@ -19,6 +21,9 @@ public class PackageIndexingService : IPackageIndexingService
     private readonly IPackageDatabase _packages;
     private readonly IPackageStorageService _storage;
     private readonly ISearchIndexer _search;
+    private readonly ICatalogService _catalog;
+    private readonly IRepositorySigningService _signing;
+    private readonly IUrlGenerator _url;
     private readonly SystemTime _time;
     private readonly IOptionsSnapshot<NuGetFeedOptions> _options;
     private readonly ILogger<PackageIndexingService> _logger;
@@ -27,6 +32,9 @@ public class PackageIndexingService : IPackageIndexingService
         IPackageDatabase packages,
         IPackageStorageService storage,
         ISearchIndexer search,
+        ICatalogService catalog,
+        IRepositorySigningService signing,
+        IUrlGenerator url,
         SystemTime time,
         IOptionsSnapshot<NuGetFeedOptions> options,
         ILogger<PackageIndexingService> logger)
@@ -34,6 +42,9 @@ public class PackageIndexingService : IPackageIndexingService
         _packages = packages ?? throw new ArgumentNullException(nameof(packages));
         _storage = storage ?? throw new ArgumentNullException(nameof(storage));
         _search = search ?? throw new ArgumentNullException(nameof(search));
+        _catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
+        _signing = signing ?? throw new ArgumentNullException(nameof(signing));
+        _url = url ?? throw new ArgumentNullException(nameof(url));
         _time = time ?? throw new ArgumentNullException(nameof(time));
         _options = options ?? throw new ArgumentNullException(nameof(options));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -106,6 +117,7 @@ public class PackageIndexingService : IPackageIndexingService
 
             await _packages.HardDeletePackageAsync(package.Id, package.Version, cancellationToken);
             await _storage.DeleteAsync(package.Id, package.Version, cancellationToken);
+            await _catalog.AddPackageDeleteAsync(package.Id, package.Version, cancellationToken);
         }
 
         // TODO: Add more package validations
@@ -115,13 +127,23 @@ public class PackageIndexingService : IPackageIndexingService
             package.Id,
             package.NormalizedVersionString);
 
+        var signing = _signing.Certificate == null
+            ? RepositorySigningResult.Unsigned
+            : await _signing.SignAsync(packageStream, _url.GetServiceIndexUrl(), cancellationToken);
+        var storedPackageStream = signing.SignedPackage ?? packageStream;
+
         try
         {
-            packageStream.Position = 0;
+            package.IsRepositorySigned = signing.IsRepositorySigned;
+
+            // The catalog describes the package as stored, including any repository signature.
+            storedPackageStream.Position = 0;
+            (package.PackageHash, package.PackageSize) = await storedPackageStream.ComputeSha512Async(cancellationToken);
+            storedPackageStream.Position = 0;
 
             await _storage.SavePackageContentAsync(
                 package,
-                packageStream,
+                storedPackageStream,
                 nuspecStream,
                 readmeStream,
                 iconStream,
@@ -140,6 +162,10 @@ public class PackageIndexingService : IPackageIndexingService
                 package.NormalizedVersionString);
 
             throw;
+        }
+        finally
+        {
+            signing.SignedPackage?.Dispose();
         }
 
         _logger.LogInformation(
@@ -164,6 +190,8 @@ public class PackageIndexingService : IPackageIndexingService
 
             throw new InvalidOperationException($"Unknown {nameof(PackageAddResult)} value: {result}");
         }
+
+        await _catalog.AddPackageDetailsAsync(new[] { package }, cancellationToken);
 
         _logger.LogInformation(
             "Successfully persisted package {Id} {Version} metadata to database. Indexing in search...",

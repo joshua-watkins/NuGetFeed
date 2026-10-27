@@ -129,7 +129,7 @@ public class PackagePublishController : Controller
             return Unauthorized();
         }
 
-        if (await _packages.RelistPackageAsync(id, nugetVersion, cancellationToken))
+        if (await _deleteService.TryRelistPackageAsync(id, nugetVersion, cancellationToken))
         {
             return Ok();
         }

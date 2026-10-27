@@ -6,8 +6,70 @@ or add it to another host with `services.AddNuGetFeed(...)`, `app.UseNuGetFeed()
 The important folders are:
 
 * Controllers - The NuGet V3 API endpoints
-* Indexing - Logic to upload and delete packages and symbols
+* Indexing - Logic to upload and delete packages and symbols, and to deprecate packages
 * Metadata, Content, Search, ServiceIndex - Server implementations of the protocol resources
+* Catalog - The append-only record of package changes, served as the catalog resource
+* Vulnerabilities - Known vulnerabilities, served to NuGet Audit
+* Signing - Repository signing of pushed packages
 * Entities - The package database (SQLite by default)
 * Storage - Stores the content of packages and symbols on the file system
 * Upstream - Interactions with an upstream NuGet feed when mirroring
+
+## Resources
+
+Besides package push, delete, content, metadata, search and autocomplete, the service index advertises:
+
+| Resource | Notes |
+| --- | --- |
+| `RegistrationsBaseUrl/3.6.0` | Includes SemVer 2.0.0 packages. The older registration resources leave them out. |
+| `SearchQueryService/3.5.0` | Search supports the `packageType` filter. |
+| `Catalog/3.0.0` | Records every push, unlist, relist, deprecation, vulnerability change and deletion. |
+| `ReadmeUriTemplate/6.13.0` | Package readmes. |
+| `VulnerabilityInfo/6.7.0` | Only advertised once a vulnerability is recorded. |
+| `PackageDetailsUriTemplate/5.1.0` | Set `PackageDetailsUriTemplate` in appsettings.json. HTTPS only. |
+| `RepositorySignatures/4.7.0`, `4.9.0`, `5.0.0` | Set `RepositorySigning` in appsettings.json. HTTPS only. |
+
+## Administration
+
+These endpoints aren't part of the NuGet protocol. Like push and delete, they need the
+`X-NuGet-ApiKey` header when `ApiKey` is set, and are disabled in read-only mode.
+
+Deprecate a package version (reasons: `Legacy`, `CriticalBugs`, `Other`), or undeprecate it:
+
+```sh
+curl -X PUT https://nuget.example.com/api/package/Contoso.Utils/1.0.0/deprecation \
+  -H "X-NuGet-ApiKey: $KEY" -H "Content-Type: application/json" \
+  -d '{"reasons":["Legacy"],"message":"Use Contoso.Tools instead.","alternatePackageId":"Contoso.Tools"}'
+
+curl -X DELETE https://nuget.example.com/api/package/Contoso.Utils/1.0.0/deprecation -H "X-NuGet-ApiKey: $KEY"
+```
+
+Record a known vulnerability (severity: 0 low, 1 moderate, 2 high, 3 critical), or remove it.
+Recording an advisory again with the same package ID and URL updates it.
+
+```sh
+curl -X PUT https://nuget.example.com/api/vulnerabilities \
+  -H "X-NuGet-ApiKey: $KEY" -H "Content-Type: application/json" \
+  -d '{"packageId":"Contoso.Utils","versions":"(, 1.2.0)","url":"https://example.com/advisories/1","severity":2}'
+
+curl -X DELETE "https://nuget.example.com/api/vulnerabilities?packageId=Contoso.Utils&url=https%3A%2F%2Fexample.com%2Fadvisories%2F1" \
+  -H "X-NuGet-ApiKey: $KEY"
+```
+
+## Repository signing
+
+With a code signing certificate configured, packages pushed over HTTPS get this server's repository
+signature, and the repository signatures resource lists the certificate. Packages that already have a
+repository signature, like packages from nuget.org, keep it. `allRepositorySigned` is only true once
+every package carries this server's signature.
+
+```json
+"RepositorySigning": {
+  "CertificatePath": "signing.pfx",
+  "CertificatePassword": "",
+  "TimestampServerUrl": "http://timestamp.digicert.com"
+}
+```
+
+Use `CertificateThumbprint` (with `CertificateStoreLocation` and `CertificateStoreName`) instead of
+`CertificatePath` to load the certificate from a certificate store.

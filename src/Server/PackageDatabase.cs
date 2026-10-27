@@ -76,6 +76,7 @@ public class PackageDatabase : IPackageDatabase
     {
         var query = _context.Packages
             .Include(p => p.Dependencies)
+            .Include(p => p.PackageTypes)
             .Include(p => p.TargetFrameworks)
             .Where(p => p.Id == id)
             .Where(p => p.NormalizedVersionString == version.ToNormalizedString());
@@ -121,6 +122,11 @@ public class PackageDatabase : IPackageDatabase
         await _context.SaveChangesAsync(cancellationToken);
 
         return true;
+    }
+
+    public async Task<bool> AllRepositorySignedAsync(CancellationToken cancellationToken)
+    {
+        return !await _context.Packages.AnyAsync(p => !p.IsRepositorySigned, cancellationToken);
     }
 
     private async Task<bool> TryUpdatePackageAsync(

@@ -96,6 +96,12 @@ public interface IPackageDatabase
     /// <param name="cancellationToken">A token to cancel the task.</param>
     /// <returns>False if the package doesn't exist.</returns>
     Task<bool> HardDeletePackageAsync(string id, NuGetVersion version, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Determine whether every package, listed or not, carries this server's repository signature.
+    /// </summary>
+    /// <param name="cancellationToken">A token to cancel the task.</param>
+    Task<bool> AllRepositorySignedAsync(CancellationToken cancellationToken);
 }
 
 /// <summary>

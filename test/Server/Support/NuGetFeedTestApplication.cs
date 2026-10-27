@@ -25,12 +25,26 @@ internal class NuGetFeedTestApplication : WebApplicationFactory<Program>
 {
     private readonly ITestOutputHelper _output;
     private readonly HttpClient _upstreamClient;
+    private readonly IReadOnlyDictionary<string, string> _configuration;
 
-    public NuGetFeedTestApplication(ITestOutputHelper output, HttpClient upstreamClient = null)
+    /// <param name="output">Receives the server's logs.</param>
+    /// <param name="upstreamClient">If set, the server mirrors the upstream feed this client reaches.</param>
+    /// <param name="configuration">Configuration that overrides the test defaults.</param>
+    public NuGetFeedTestApplication(
+        ITestOutputHelper output,
+        HttpClient upstreamClient = null,
+        IReadOnlyDictionary<string, string> configuration = null)
     {
         _output = output ?? throw new ArgumentNullException(nameof(output));
         _upstreamClient = upstreamClient;
+        _configuration = configuration ?? new Dictionary<string, string>();
     }
+
+    /// <summary>
+    /// Create a client that reaches the server over HTTPS, which some resources require.
+    /// </summary>
+    public HttpClient CreateHttpsClient()
+        => CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost") });
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -69,6 +83,8 @@ internal class NuGetFeedTestApplication : WebApplicationFactory<Program>
                     { "Mirror:Enabled", _upstreamClient != null ? "true": "false" },
                     { "Mirror:PackageSource", "http://localhost/v3/index.json" },
                 });
+
+                config.AddInMemoryCollection(_configuration);
             })
             .ConfigureServices((context, services) =>
             {
