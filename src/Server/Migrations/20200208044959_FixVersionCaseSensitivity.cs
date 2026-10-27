@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace BaGet.Database.Sqlite.Migrations
+namespace NuGetFeed.Migrations
 {
     public partial class FixVersionCaseSensitivity : Migration
     {

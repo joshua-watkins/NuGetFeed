@@ -1,7 +1,7 @@
 using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace BaGet.Database.Sqlite.Migrations
+namespace NuGetFeed.Migrations
 {
     public partial class Initial : Migration
     {
@@ -33,7 +33,7 @@ namespace BaGet.Database.Sqlite.Migrations
                     Tags = table.Column<string>(maxLength: 4000, nullable: true),
                     RowVersion = table.Column<byte[]>(rowVersion: true, nullable: true),
 
-                    // HACK - This migration was retroactively modified by: https://github.com/loic-sharma/BaGet/pull/466
+                    // HACK - This migration was retroactively modified.
                     // The version column used to be case sensitive:
                     //   Version = table.Column<string>(maxLength: 64, nullable: false)
                     // This hack is necessary as SQLite cannot alter columns.

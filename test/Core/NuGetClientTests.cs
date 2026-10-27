@@ -2,7 +2,7 @@ using NuGetFeed;
 using NuGetFeed.Core.Tests.Support;
 using Xunit;
 
-namespace BaGet.Protocol.Tests
+namespace NuGetFeed.Core.Tests
 {
     public class NuGetClientTests : IClassFixture<ProtocolFixture>
     {

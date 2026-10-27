@@ -1,44 +1,56 @@
+using NuGetFeed;
 using NuGetFeed.Extensions;
 
-namespace NuGetFeed.Windows;
-
-public class Program
+// Runs the NuGet feed server and website as a Windows Service.
+// When started from a console instead, it runs as a normal console application.
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
-    public static void Main(string[] args)
-    {
-        var builder = Host.CreateDefaultBuilder(args);
-        builder.ConfigureAppConfiguration((ctx, config) =>
-        {
-            var root = Environment.GetEnvironmentVariable("BAGET_CONFIG_ROOT");
+    Args = args,
 
-            if (!string.IsNullOrEmpty(root))
-            {
-                config.SetBasePath(root);
-            }
-        });
-        builder.ConfigureWebHostDefaults(web =>
-        {
-            web.ConfigureKestrel(options =>
-            {
-                // Remove the upload limit from Kestrel. If needed, an upload limit can
-                // be enforced by a reverse proxy server, like IIS.
-                options.Limits.MaxRequestBodySize = null;
-            });
+    // A Windows Service starts in C:\Windows\System32, and a console may start anywhere.
+    // Always read appsettings.json and the website's static files from the application's folder.
+    ContentRootPath = AppContext.BaseDirectory,
+});
 
-            web.UseStartup<Startup>();
-        });
-        builder.UseWindowsService(options =>
-        {
-            options.ServiceName = "BaGet";
-        });
+builder.UseNuGetFeedConfigRoot();
 
-        var host = builder.Build();
-        if (!host.ValidateStartupOptions())
-        {
-            return;
-        }
+builder.Services.AddWindowsService(options =>
+{
+    options.ServiceName = "NuGetFeed";
+});
 
-        host.RunMigrationsAsync().Wait();
-        host.RunAsync().Wait();
-    }
+builder.WebHost.ConfigureKestrel(options =>
+{
+    // Remove the upload limit from Kestrel. If needed, an upload limit can
+    // be enforced by a reverse proxy server, like IIS.
+    options.Limits.MaxRequestBodySize = null;
+});
+
+builder.Services.AddNuGetFeed(feed =>
+{
+    // Use SQLite as the database and store packages on the local file system.
+    feed.AddSqliteDatabase();
+    feed.AddFileStorage();
+});
+
+builder.Services.AddNuGetFeedUI();
+
+var app = builder.Build();
+if (!app.ValidateStartupOptions())
+{
+    return;
 }
+
+app.UseNuGetFeed();
+
+app.UseStaticFiles();
+app.UseRouting();
+
+app.UseCors(ConfigureNuGetFeedOptions.CorsPolicy);
+app.UseOperationCancelledMiddleware();
+
+app.MapNuGetFeed();
+app.MapNuGetFeedUI();
+
+await app.RunMigrationsAsync();
+await app.RunAsync();

@@ -1,12 +1,12 @@
-﻿// Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
+// Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
 // for details on configuring this project to bundle and minify static web assets.
 
 // Write your JavaScript code.
 (function () {
     'use strict';
 
-    var baget = {};
-    window.baget = baget;
+    var nugetfeed = {};
+    window.nugetfeed = nugetfeed;
 
     function detectIE() {
         var ua = window.navigator.userAgent;
@@ -29,7 +29,7 @@
 
     // source: http://stackoverflow.com/questions/400212/how-do-i-copy-to-the-clipboard-in-javascript
     // enhancement with special case for IEs, otherwise the temp textarea will be visible
-    baget.copyTextToClipboard = function (text, elementToFocus) {
+    nugetfeed.copyTextToClipboard = function (text, elementToFocus) {
         if (detectIE()) {
             try {
                 window.clipboardData.setData('Text', text);

@@ -1,4 +1,4 @@
-﻿using NuGetFeed.Server.Tests.Support;
+using NuGetFeed.Server.Tests.Support;
 using System;
 using System.IO;
 using System.Net;
@@ -7,19 +7,19 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace BaGet.Tests
+namespace NuGetFeed.Server.Tests
 {
     public class MirrorIntegrationTests : IDisposable
     {
-        private readonly BaGetApplication _upstream;
-        private readonly BaGetApplication _downstream;
+        private readonly NuGetFeedTestApplication _upstream;
+        private readonly NuGetFeedTestApplication _downstream;
         private readonly HttpClient _downstreamClient;
         private readonly Stream _packageStream;
 
         public MirrorIntegrationTests(ITestOutputHelper output)
         {
-            _upstream = new BaGetApplication(output);
-            _downstream = new BaGetApplication(output, _upstream.CreateClient());
+            _upstream = new NuGetFeedTestApplication(output);
+            _downstream = new NuGetFeedTestApplication(output, _upstream.CreateClient());
 
             _downstreamClient = _downstream.CreateClient();
             _packageStream = TestResources.GetResourceStream(TestResources.Package);

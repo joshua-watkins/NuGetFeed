@@ -1,9 +1,9 @@
-# BaGet.Core
+# NuGetFeed.Core
 
-Contains BaGet's core logic. The important folders are:
+The NuGet V3 protocol: models and a client, as specified by the [NuGet API overview](https://learn.microsoft.com/en-us/nuget/api/overview).
+It has no knowledge of how packages are stored. The important folders are:
 
-* Indexing - Logic to upload packages and symbols
-* Metadata - Used to track packages' metadata, usually in a database
-* Storage - Stores the content of packages and symbols
-* Search - Used to search for packages
-* Mirror - Interactions with an upstream NuGet feed
+* Models - The protocol's request and response models, including NuGetFeed's extensions
+* ServiceIndex, PackageContent, PackageMetadata, Search, Catalog - Clients for each protocol resource
+* PackageDetails - Client for the information a gallery shows on a package's page
+* `NuGetClient` / `NuGetClientFactory` - Entry points to talk to any NuGet V3 feed

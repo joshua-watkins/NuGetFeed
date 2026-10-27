@@ -1,53 +1,61 @@
+using NuGetFeed;
 using NuGetFeed.Extensions;
 
-namespace NuGetFeed.Linux;
+// --port 3333 --proxy, everything else through NuGetFeed.ini
+// maybe "secret" --migrate/upgrade/initialize switch for updating sqlite schema file.
 
-public class Program
+// Runs the NuGet feed server and website as a systemd service.
+// When started from a shell instead, it runs as a normal console application.
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
-    public static void Main(string[] args)
-    {
-        //HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
+    Args = args,
 
-        //builder.Configuration
-        //    .Sources.Clear();
-        //builder.Configuration
-        //    .AddIniFile("NuGetFeed.ini", true, true);
+    // Read appsettings.json and the website's static files from the application's folder,
+    // wherever the service or shell started it from.
+    ContentRootPath = AppContext.BaseDirectory,
+});
 
+builder.UseNuGetFeedConfigRoot();
 
-        // --port 3333 --proxy, everything else through NuGetFeed.ini
-        // maybe "secret" --migrate/upgrade/initialize switch for updating sqlite schema file.
+// Notifies systemd when the service has started and is stopping (Type=notify),
+// and formats console logs for the journal.
+builder.Services.AddSystemd();
 
-        var builder = Host.CreateDefaultBuilder(args);
-        builder.ConfigureAppConfiguration((ctx, config) =>
-        {
-            var root = Environment.GetEnvironmentVariable("BAGET_CONFIG_ROOT");
+builder.WebHost.ConfigureKestrel(options =>
+{
+    // Remove the upload limit from Kestrel. If needed, an upload limit can
+    // be enforced by a reverse proxy server, like nginx.
+    options.Limits.MaxRequestBodySize = null;
+});
 
-            if (!string.IsNullOrEmpty(root))
-            {
-                config.SetBasePath(root);
-            }
-        });
-        builder.ConfigureWebHostDefaults(web =>
-        {
-            web.ConfigureKestrel(options =>
-            {
-                // Remove the upload limit from Kestrel. If needed, an upload limit can
-                // be enforced by a reverse proxy server, like IIS.
-                options.Limits.MaxRequestBodySize = null;
-            });
+builder.Services.AddNuGetFeed(feed =>
+{
+    //feed.AddMySqlDatabase();
+    //feed.AddPostgreSqlDatabase();
+    // Use SQLite as the database and store packages on the local file system.
+    feed.AddSqliteDatabase();
+    //feed.AddSqlServerDatabase();
+    feed.AddFileStorage();
+});
 
-            web.UseStartup<Startup>();
-        });
-        builder.UseSystemd();
+builder.Services.AddNuGetFeedUI();
 
-        var host = builder.Build();
-        if (!host.ValidateStartupOptions())
-        {
-            return;
-        }
-
-        host.RunMigrationsAsync().Wait();
-        host.RunAsync().Wait();
-    }
-
+var app = builder.Build();
+if (!app.ValidateStartupOptions())
+{
+    return;
 }
+
+app.UseNuGetFeed();
+
+app.UseStaticFiles();
+app.UseRouting();
+
+app.UseCors(ConfigureNuGetFeedOptions.CorsPolicy);
+app.UseOperationCancelledMiddleware();
+
+app.MapNuGetFeed();
+app.MapNuGetFeedUI();
+
+await app.RunMigrationsAsync();
+await app.RunAsync();

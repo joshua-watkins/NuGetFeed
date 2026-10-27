@@ -1,13 +1,12 @@
-﻿@page
-@using NuGetFeed
-@inject IUrlGenerator _url
+@page
+@model UploadModel
 
 @{
     ViewData["Title"] = "Upload package";
 
     var baseUrl = Url.PageLink("/Index");
-    var publishUrl = _url.GetPackagePublishResourceUrl();
-    var serviceIndexUrl = _url.GetServiceIndexUrl();
+    var publishUrl = Model.PublishUrl;
+    var serviceIndexUrl = Model.ServiceIndexUrl;
 }
 
 <div class="col-sm-12">
@@ -38,7 +37,7 @@
                         data-tottle="popover"
                         data-placement="bottom"
                         data-content="Copied"
-                        @@click="window.baget.copyTextToClipboard(active.content.join('\n'), $el)">
+                        @@click="window.nugetfeed.copyTextToClipboard(active.content.join('\n'), $el)">
                     <i class="ms-Icon ms-Icon--Copy"></i>
                 </button>
             </div>

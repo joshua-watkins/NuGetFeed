@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using NuGetFeed.Models;
 using NuGetFeed.Search;
 
-namespace BaGet.Protocol;
+namespace NuGetFeed;
 
 public partial class NuGetClientFactory
 {
@@ -26,7 +26,6 @@ public partial class NuGetClientFactory
             CancellationToken cancellationToken = default)
         {
             // TODO: Support search failover.
-            // See: https://github.com/loic-sharma/BaGet/issues/314
             var client = await _clientfactory.GetAutocompleteClientAsync(cancellationToken);
 
             return await client.AutocompleteAsync(query, skip, take, includePrerelease, includeSemVer2, cancellationToken);
@@ -39,7 +38,6 @@ public partial class NuGetClientFactory
             CancellationToken cancellationToken = default)
         {
             // TODO: Support search failover.
-            // See: https://github.com/loic-sharma/BaGet/issues/314
             var client = await _clientfactory.GetAutocompleteClientAsync(cancellationToken);
 
             return await client.ListPackageVersionsAsync(packageId, includePrerelease, includeSemVer2, cancellationToken);

@@ -2,7 +2,7 @@ using System;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
 
-namespace BaGet.Tests
+namespace NuGetFeed.Server.Tests
 {
     // Based off:
     // https://stackoverflow.com/questions/46169169/net-core-2-0-configurelogging-xunit-test

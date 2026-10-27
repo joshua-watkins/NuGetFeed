@@ -6,7 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using BaGet.Protocol;
+using NuGetFeed;
 using NuGet.Versioning;
 using NuGetFeed.Extensions;
 using NuGetFeed.Models;
@@ -397,7 +397,7 @@ public class NuGetClient
             take,
             includePrerelease,
             includeSemVer2: true,
-            cancellationToken);
+            cancellationToken: cancellationToken);
 
         return response.Data;
     }

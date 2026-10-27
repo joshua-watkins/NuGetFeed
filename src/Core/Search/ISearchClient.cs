@@ -20,6 +20,11 @@ public interface ISearchClient
     /// <param name="take">How many results to return.</param>
     /// <param name="includePrerelease">Whether pre-release packages should be returned.</param>
     /// <param name="includeSemVer2">Whether packages that require SemVer 2.0.0 compatibility should be returned.</param>
+    /// <param name="packageType">Only return packages of this package type. If null, all package types are returned.</param>
+    /// <param name="framework">
+    /// Only return packages compatible with this target framework. If null, all frameworks are returned.
+    /// This is an unofficial parameter that isn't part of the NuGet protocol.
+    /// </param>
     /// <param name="cancellationToken">A token to cancel the task.</param>
     /// <returns>The search response.</returns>
     Task<SearchResponse> SearchAsync(
@@ -28,5 +33,7 @@ public interface ISearchClient
         int take = 20,
         bool includePrerelease = true,
         bool includeSemVer2 = true,
+        string packageType = null,
+        string framework = null,
         CancellationToken cancellationToken = default);
 }

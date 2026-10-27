@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using NuGetFeed.Catalog;
 using NuGetFeed.Models;
 
-namespace BaGet.Protocol;
+namespace NuGetFeed;
 
 public partial class NuGetClientFactory
 {

@@ -1,3 +1,6 @@
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using NuGetFeed.Entities;
@@ -14,6 +17,22 @@ public class SqliteContext : AbstractContext<SqliteContext>
     public SqliteContext(DbContextOptions<SqliteContext> options)
         : base(options)
     { }
+
+    public override async Task RunMigrationsAsync(CancellationToken cancellationToken)
+    {
+        // SQLite creates the database file, but not the folder it lives in.
+        var dataSource = new SqliteConnectionStringBuilder(Database.GetConnectionString()).DataSource;
+        if (!string.IsNullOrEmpty(dataSource) && dataSource != ":memory:")
+        {
+            var directory = Path.GetDirectoryName(Path.GetFullPath(dataSource));
+            if (!string.IsNullOrEmpty(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+        }
+
+        await base.RunMigrationsAsync(cancellationToken);
+    }
 
     public override bool IsUniqueConstraintViolationException(DbUpdateException exception)
     {

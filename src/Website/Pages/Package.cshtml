@@ -3,35 +3,33 @@
 
 @{
     ViewData["Title"] = Model.Found
-        ? Model.Package.Id + " " + Model.Package.NormalizedVersionString
-        : Model.Package.Id;
+        ? Model.Package.PackageId + " " + Model.Version.ToNormalizedString()
+        : Model.Package.PackageId;
 }
 
 @if (!Model.Found)
 {
     <div>
         <h2>Oops, package not found...</h2>
-        <p>Could not find package '@Model.Package.Id'.</p>
-        <p>You can try searching on <a href="https://www.nuget.org/packages?q=@Uri.EscapeDataString(Model.Package.Id)" target="_blank" rel="noopener noreferrer">nuget.org</a> package.</p>
-        <p>Think there's a problem? Consider taking a look at our <a href="https://loic-sharma.github.io/BaGet/" target="_blank" rel="noopener noreferrer">documentation</a> or asking for help on our <a href="https://github.com/loic-sharma/BaGet/issues" target="_blank" rel="noopener noreferrer">GitHub project</a></p>
-    </div>
+        <p>Could not find package '@Model.Package.PackageId'.</p>
+        <p>You can try searching on <a href="https://www.nuget.org/packages?q=@Uri.EscapeDataString(Model.Package.PackageId)" target="_blank" rel="noopener noreferrer">nuget.org</a> package.</p>    </div>
 }
 else
 {
     <div class="row display-package">
         <aside class="col-sm-1 package-icon">
-            <img src="@(Model.IconUrl ?? Url.Content("~/_content/NuGetFeed.Web/images/default-package-icon-256x256.png"))"
+            <img src="@(Model.IconUrl ?? Url.Content("~/_content/NuGetFeed.Website/images/default-package-icon-256x256.png"))"
                  class="img-responsive"
-                 onerror="this.src='@Url.Content("~/_content/NuGetFeed.Web/images/default-package-icon-256x256.png")'"
+                 onerror="this.src='@Url.Content("~/_content/NuGetFeed.Website/images/default-package-icon-256x256.png")'"
                  alt="The package icon" />
         </aside>
 
         <article class="col-sm-8 package-details-main">
             <div class="package-title">
                 <h1>
-                    @Model.Package.Id
+                    @Model.Package.PackageId
 
-                    <small class="text-nowrap">@Model.Package.NormalizedVersionString</small>
+                    <small class="text-nowrap">@Model.Version.ToNormalizedString()</small>
                 </h1>
             </div>
 
@@ -53,7 +51,7 @@ else
                                 data-tottle="popover"
                                 data-placement="bottom"
                                 data-content="Copied"
-                                @@click="window.baget.copyTextToClipboard(active.content.join('\n'), $el)">
+                                @@click="window.nugetfeed.copyTextToClipboard(active.content.join('\n'), $el)">
                             <i class="ms-Icon ms-Icon--Copy"></i>
                         </button>
                     </div>
@@ -82,11 +80,11 @@ else
                     @<div class="package-used-by">
                         @if (!Model.UsedBy.Any())
                         {
-                            <p>No packages depend on @Model.Package.Id.</p>
+                            <p>No packages depend on @Model.Package.PackageId.</p>
                         }
                         else
                         {
-                            <p>Showing the top 20 packages that depend on @Model.Package.Id.</p>
+                            <p>Showing the top 20 packages that depend on @Model.Package.PackageId.</p>
                             <div>
                                 <table>
                                     <thead>
@@ -211,19 +209,19 @@ else
                         Last updated @Model.LastUpdated.Humanize()
                     </li>
 
-                    @if (Model.Package.ProjectUrlString != null)
+                    @if (!string.IsNullOrEmpty(Model.Package.ProjectUrl))
                     {
                         <li>
                             <i class="ms-Icon ms-Icon--Globe"></i>
-                            <a href="@Model.Package.ProjectUrlString">Project URL</a>
+                            <a href="@Model.Package.ProjectUrl">Project URL</a>
                         </li>
                     }
 
-                    @if (Model.Package.RepositoryUrlString != null)
+                    @if (!string.IsNullOrEmpty(Model.Package.RepositoryUrl))
                     {
                         <li>
-                            <img class="icon" aria-hidden="true" alt="GitHub logo" src="@Url.Content("~/_content/NuGetFeed.Web/images/github-32x32.png")" />
-                            <a href="@Model.Package.RepositoryUrlString">Source code</a>
+                            <img class="icon" aria-hidden="true" alt="GitHub logo" src="@Url.Content("~/_content/NuGetFeed.Website/images/github-32x32.png")" />
+                            <a href="@Model.Package.RepositoryUrl">Source code</a>
                         </li>
                     }
 
@@ -258,12 +256,12 @@ else
                 </ul>
             </div>
 
-            @if (Model.Package.Authors.Any())
+            @if (!string.IsNullOrEmpty(Model.Package.Authors))
             {
                 <div>
                     <h2>Authors</h2>
 
-                    <p>@string.Join(", ", Model.Package.Authors)</p>
+                    <p>@Model.Package.Authors</p>
                 </div>
             }
         </aside>
@@ -280,7 +278,7 @@ else
                 {
                     name: ".NET CLI",
                     prefix: ">",
-                    content: ["dotnet new --install @Model.Package.Id::@Model.Package.NormalizedVersionString"],
+                    content: ["dotnet new --install @Model.Package.PackageId::@Model.Version.ToNormalizedString()"],
                 },
                 </text>
             }
@@ -290,7 +288,7 @@ else
                 {
                     name: ".NET CLI",
                     prefix: ">",
-                    content: ["dotnet tool install --global @Model.Package.Id --version @Model.Package.NormalizedVersionString"],
+                    content: ["dotnet tool install --global @Model.Package.PackageId --version @Model.Version.ToNormalizedString()"],
                 },
                 </text>
             }
@@ -300,22 +298,22 @@ else
                 {
                     name: ".NET CLI",
                     prefix: ">",
-                    content: ["dotnet add package @Model.Package.Id --version @Model.Package.NormalizedVersionString"],
+                    content: ["dotnet add package @Model.Package.PackageId --version @Model.Version.ToNormalizedString()"],
                 },
                 {
                     name: "PackageReference",
                     prefix: "",
-                    content: ["<PackageReference Include=\"@Model.Package.Id\" Version=\"@Model.Package.NormalizedVersionString\" />"]
+                    content: ["<PackageReference Include=\"@Model.Package.PackageId\" Version=\"@Model.Version.ToNormalizedString()\" />"]
                 },
                 {
                     name: "Paket CLI",
                     prefix: ">",
-                    content: ["paket add @Model.Package.Id --version @Model.Package.NormalizedVersionString"]
+                    content: ["paket add @Model.Package.PackageId --version @Model.Version.ToNormalizedString()"]
                 },
                 {
                     name: "Package Manager",
                     prefix: "PM>",
-                    content: ["Install-Package @Model.Package.Id -Version @Model.Package.NormalizedVersionString"]
+                    content: ["Install-Package @Model.Package.PackageId -Version @Model.Version.ToNormalizedString()"]
                 }
                 </text>
             }

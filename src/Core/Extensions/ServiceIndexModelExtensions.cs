@@ -19,6 +19,19 @@ public static class ServiceIndexModelExtensions
     private static readonly string Version490 = "/4.9.0";
     private static readonly string Version500 = "/5.0.0";
     private static readonly string Version510 = "/5.1.0";
+    private static readonly string Version6130 = "/6.13.0";
+
+    /// <summary>
+    /// The resource type of the README URI template.
+    /// See: https://learn.microsoft.com/en-us/nuget/api/readme-template-resource
+    /// </summary>
+    public static readonly string ReadmeUriTemplateType = "ReadmeUriTemplate" + Version6130;
+
+    /// <summary>
+    /// The resource type of the package dependents resource.
+    /// This is an unofficial resource that isn't part of the NuGet protocol.
+    /// </summary>
+    public static readonly string PackageDependentsType = "NuGetFeedDependents/1.0.0";
 
     private static readonly string[] Catalog = { "Catalog" + Version300 };
     private static readonly string[] SearchQueryService = { "SearchQueryService" + Version340, "SearchQueryService" + Version300beta, "SearchQueryService" };
@@ -55,6 +68,21 @@ public static class ServiceIndexModelExtensions
     public static string GetSearchAutocompleteResourceUrl(this ServiceIndexResponse serviceIndex)
     {
         return serviceIndex.GetResourceUrl(SearchAutocompleteService);
+    }
+
+    public static string GetPackagePublishResourceUrl(this ServiceIndexResponse serviceIndex)
+    {
+        return serviceIndex.GetResourceUrl(PackagePublish);
+    }
+
+    public static string GetReadmeUriTemplate(this ServiceIndexResponse serviceIndex)
+    {
+        return serviceIndex.GetResourceUrl(new[] { ReadmeUriTemplateType });
+    }
+
+    public static string GetPackageDependentsResourceUrl(this ServiceIndexResponse serviceIndex)
+    {
+        return serviceIndex.GetResourceUrl(new[] { PackageDependentsType });
     }
 
     public static string GetResourceUrl(this ServiceIndexResponse serviceIndex, string[] types)

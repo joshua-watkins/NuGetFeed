@@ -1,4 +1,4 @@
-using BaGet.Protocol;
+using NuGetFeed;
 using Microsoft.Extensions.Logging;
 using NuGetFeed.Catalog;
 

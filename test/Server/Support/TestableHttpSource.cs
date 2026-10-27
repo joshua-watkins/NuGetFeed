@@ -7,7 +7,7 @@ using NuGet.Configuration;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 
-namespace BaGet.Tests
+namespace NuGetFeed.Server.Tests
 {
     public class TestableHttpSource : HttpSource
     {
@@ -17,7 +17,7 @@ namespace BaGet.Tests
 
             var httpCacheDirectory = Path.Combine(
                 Path.GetTempPath(),
-                "BaGetTests",
+                "NuGetFeedTests",
                 Guid.NewGuid().ToString("N"));
 
             return new TestableHttpSource(

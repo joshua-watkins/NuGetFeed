@@ -1,83 +1,98 @@
-using System;
-using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using NuGetFeed;
 using NuGetFeed.Extensions;
 using NuGetFeed.Upstream;
 
-namespace NuGetFeed;
+// Runs the NuGet feed server on its own: the NuGet V3 API, without the website.
+var builder = WebApplication.CreateBuilder(args);
 
-public class Program
+builder.UseNuGetFeedConfigRoot();
+
+builder.WebHost.ConfigureKestrel(options =>
 {
-    public static async Task Main(string[] args)
-    {
-        var host = CreateHostBuilder(args).Build();
-        if (!host.ValidateStartupOptions())
-        {
-            return;
-        }
+    // Remove the upload limit from Kestrel. If needed, an upload limit can
+    // be enforced by a reverse proxy server, like IIS.
+    options.Limits.MaxRequestBodySize = null;
+});
 
-        var app = new CommandLineApplication
-        {
-            Name = "baget",
-            Description = "A light-weight NuGet service",
-        };
+builder.Services.AddNuGetFeed(feed =>
+{
+    // Add database providers.
+    //feed.AddAzureTableDatabase();
+    //feed.AddMySqlDatabase();
+    //feed.AddPostgreSqlDatabase();
+    feed.AddSqliteDatabase();
+    //feed.AddSqlServerDatabase();
 
-        app.HelpOption(inherited: true);
+    // Add storage providers.
+    feed.AddFileStorage();
+    //feed.AddAliyunOssStorage();
+    //feed.AddAwsS3Storage();
+    //feed.AddAzureBlobStorage();
+    //feed.AddGoogleCloudStorage();
 
-        app.Command("import", import =>
-        {
-            import.Command("downloads", downloads =>
-            {
-                downloads.OnExecuteAsync(async cancellationToken =>
-                {
-                    using (var scope = host.Services.CreateScope())
-                    {
-                        var importer = scope.ServiceProvider.GetRequiredService<DownloadsImporter>();
+    // Add search providers.
+    //feed.AddAzureSearch();
+});
 
-                        await importer.ImportAsync(cancellationToken);
-                    }
-                });
-            });
-        });
-
-        app.Option("--urls", "The URLs that BaGet should bind to.", CommandOptionType.SingleValue);
-
-        app.OnExecuteAsync(async cancellationToken =>
-        {
-            await host.RunMigrationsAsync(cancellationToken);
-            await host.RunAsync(cancellationToken);
-        });
-
-        await app.ExecuteAsync(args);
-    }
-
-    public static IHostBuilder CreateHostBuilder(string[] args)
-    {
-        return Host
-            .CreateDefaultBuilder(args)
-            .ConfigureAppConfiguration((ctx, config) =>
-            {
-                var root = Environment.GetEnvironmentVariable("BAGET_CONFIG_ROOT");
-
-                if (!string.IsNullOrEmpty(root))
-                {
-                    config.SetBasePath(root);
-                }
-            })
-            .ConfigureWebHostDefaults(web =>
-            {
-                web.ConfigureKestrel(options =>
-                {
-                    // Remove the upload limit from Kestrel. If needed, an upload limit can
-                    // be enforced by a reverse proxy server, like IIS.
-                    options.Limits.MaxRequestBodySize = null;
-                });
-
-                web.UseStartup<Startup>();
-            });
-    }
+var app = builder.Build();
+if (!app.ValidateStartupOptions())
+{
+    return;
 }
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseStatusCodePages();
+}
+
+app.UseNuGetFeed();
+app.UseRouting();
+
+app.UseCors(ConfigureNuGetFeedOptions.CorsPolicy);
+app.UseOperationCancelledMiddleware();
+
+app.MapNuGetFeed();
+
+// Other arguments, like --environment or --Database:ConnectionString=..., are configuration
+// values that the host already read. Let them through instead of rejecting them.
+var commandLine = new CommandLineApplication
+{
+    Name = "nugetfeed",
+    Description = "A light-weight NuGet service",
+    UnrecognizedArgumentHandling = UnrecognizedArgumentHandling.CollectAndContinue,
+};
+
+commandLine.HelpOption(inherited: true);
+
+commandLine.Command("import", import =>
+{
+    import.UnrecognizedArgumentHandling = UnrecognizedArgumentHandling.CollectAndContinue;
+
+    import.Command("downloads", downloads =>
+    {
+        downloads.UnrecognizedArgumentHandling = UnrecognizedArgumentHandling.CollectAndContinue;
+
+        downloads.OnExecuteAsync(async cancellationToken =>
+        {
+            using var scope = app.Services.CreateScope();
+            var importer = scope.ServiceProvider.GetRequiredService<DownloadsImporter>();
+
+            await importer.ImportAsync(cancellationToken);
+        });
+    });
+});
+
+commandLine.Option("--urls", "The URLs that NuGetFeed should bind to.", CommandOptionType.SingleValue);
+
+commandLine.OnExecuteAsync(async cancellationToken =>
+{
+    await app.RunMigrationsAsync(cancellationToken);
+    await app.RunAsync();
+});
+
+await commandLine.ExecuteAsync(args);

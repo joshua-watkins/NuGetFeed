@@ -8,7 +8,7 @@ using NuGet.Configuration;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 
-namespace BaGet.Tests
+namespace NuGetFeed.Server.Tests
 {
     /// <summary>
     /// Similar to official HttpSourceResourceProvider, but uses test host.

@@ -1,8 +1,9 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
-using BaGet.Web;
 using Moq;
 using NuGetFeed.Models;
+using NuGetFeed.Pages;
 using NuGetFeed.Search;
 using Xunit;
 
@@ -10,21 +11,28 @@ namespace NuGetFeed.Website.Tests;
 
 public class IndexModelFacts
 {
+    private readonly Mock<ISearchClient> _search;
     private readonly IndexModel _target;
 
-    private SearchRequest _capturedRequest = null;
-    private readonly SearchResponse _response = new SearchResponse();
+    private readonly SearchResponse _response = new SearchResponse { Data = new List<SearchResult>() };
     private readonly CancellationToken _cancellation = CancellationToken.None;
 
     public IndexModelFacts()
     {
-        var search = new Mock<ISearchService>();
-        search
-            .Setup(s => s.SearchAsync(It.IsAny<SearchRequest>(), _cancellation))
-            .Callback((SearchRequest r, CancellationToken c) => _capturedRequest = r)
+        _search = new Mock<ISearchClient>();
+        _search
+            .Setup(s => s.SearchAsync(
+                It.IsAny<string>(),
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<bool>(),
+                It.IsAny<bool>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                _cancellation))
             .ReturnsAsync(_response);
 
-        _target = new IndexModel(search.Object);
+        _target = new IndexModel(_search.Object, FeedConnectionFacts.CreateRemoteFeed());
     }
 
     [Fact]
@@ -32,13 +40,15 @@ public class IndexModelFacts
     {
         await _target.OnGetAsync(_cancellation);
 
-        Assert.Equal(0, _capturedRequest.Skip);
-        Assert.Equal(20, _capturedRequest.Take);
-        Assert.True(_capturedRequest.IncludePrerelease);
-        Assert.True(_capturedRequest.IncludeSemVer2);
-        Assert.Null(_capturedRequest.PackageType);
-        Assert.Null(_capturedRequest.Framework);
-        Assert.Null(_capturedRequest.Query);
+        _search.Verify(s => s.SearchAsync(
+            /*query: */ null,
+            /*skip: */ 0,
+            /*take: */ 20,
+            /*includePrerelease: */ true,
+            /*includeSemVer2: */ true,
+            /*packageType: */ null,
+            /*framework: */ null,
+            _cancellation));
     }
 
     [Fact]
@@ -52,12 +62,14 @@ public class IndexModelFacts
 
         await _target.OnGetAsync(_cancellation);
 
-        Assert.Equal(80, _capturedRequest.Skip);
-        Assert.Equal(20, _capturedRequest.Take);
-        Assert.False(_capturedRequest.IncludePrerelease);
-        Assert.True(_capturedRequest.IncludeSemVer2);
-        Assert.Equal("foo", _capturedRequest.PackageType);
-        Assert.Equal("bar", _capturedRequest.Framework);
-        Assert.Equal("Hello world", _capturedRequest.Query);
+        _search.Verify(s => s.SearchAsync(
+            /*query: */ "Hello world",
+            /*skip: */ 80,
+            /*take: */ 20,
+            /*includePrerelease: */ false,
+            /*includeSemVer2: */ true,
+            /*packageType: */ "foo",
+            /*framework: */ "bar",
+            _cancellation));
     }
 }

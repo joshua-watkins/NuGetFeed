@@ -1,0 +1,20 @@
+<Project>
+
+	<!--
+		The hosts reference the runnable Server project, which has its own appsettings.json.
+		Build already prefers the host's file when a referenced project has a file at the same path;
+		apply the same rule to publish instead of failing with NETSDK1152.
+	-->
+	<Target Name="PreferHostPublishContent" AfterTargets="GetCopyToPublishDirectoryItems">
+		<ItemGroup>
+			<_SourceItemsToCopyToPublishDirectoryAlways Remove="@(ContentWithTargetPath)" MatchOnMetadata="TargetPath" MatchOnMetadataOptions="PathLike" />
+			<_SourceItemsToCopyToPublishDirectory Remove="@(ContentWithTargetPath)" MatchOnMetadata="TargetPath" MatchOnMetadataOptions="PathLike" />
+			<_SourceItemsToCopyToPublishDirectoryIfDifferent Remove="@(ContentWithTargetPath)" MatchOnMetadata="TargetPath" MatchOnMetadataOptions="PathLike" />
+
+			<_SourceItemsToCopyToPublishDirectoryAlways Include="@(ContentWithTargetPath->'%(FullPath)')" Condition="'%(ContentWithTargetPath.CopyToPublishDirectory)' == 'Always'" />
+			<_SourceItemsToCopyToPublishDirectory Include="@(ContentWithTargetPath->'%(FullPath)')" Condition="'%(ContentWithTargetPath.CopyToPublishDirectory)' == 'PreserveNewest'" />
+			<_SourceItemsToCopyToPublishDirectoryIfDifferent Include="@(ContentWithTargetPath->'%(FullPath)')" Condition="'%(ContentWithTargetPath.CopyToPublishDirectory)' == 'IfDifferent'" />
+		</ItemGroup>
+	</Target>
+
+</Project>

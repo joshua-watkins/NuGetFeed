@@ -1,9 +1,19 @@
 ﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
-  <Package Id="TODO_Manufacturer.Windows.Setup" Name="Windows.Setup" Manufacturer="TODO Manufacturer" Version="1.0.0.0">
+  <Package Id="NuGetFeed.WindowsService"
+           Name="NuGetFeed"
+           Manufacturer="NuGetFeed"
+           Version="!(bind.FileVersion.NuGetFeedExe)"
+           InstallerVersion="500"
+           Scope="perMachine">
+    <SummaryInformation Description="!(loc.Description)" />
+
     <MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)" />
+    <MediaTemplate EmbedCab="yes" />
 
     <Feature Id="Main">
-      <ComponentGroupRef Id="ExampleComponents" />
+      <ComponentGroupRef Id="ServiceComponents" />
+      <ComponentGroupRef Id="ApplicationFiles" />
+      <ComponentGroupRef Id="DataComponents" />
     </Feature>
   </Package>
 </Wix>

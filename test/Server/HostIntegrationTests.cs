@@ -4,9 +4,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NuGetFeed;
 using NuGetFeed.Entities;
+using NuGetFeed.Extensions;
 using Xunit;
 
-namespace BaGet.Tests
+namespace NuGetFeed.Server.Tests
 {
     public class HostIntegrationTests
     {
@@ -61,15 +62,24 @@ namespace BaGet.Tests
 
         private IServiceProvider BuildServiceProvider(Dictionary<string, string> configs = null)
         {
-            var host = Program
-                .CreateHostBuilder(new string[0])
-                .ConfigureAppConfiguration((ctx, config) =>
-                {
-                    config.AddInMemoryCollection(configs ?? new Dictionary<string, string>());
-                })
+            // Start from the server's own appsettings.json, which is copied to the test output.
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory)
+                .AddJsonFile("appsettings.json")
+                .AddInMemoryCollection(configs ?? new Dictionary<string, string>())
                 .Build();
 
-            return host.Services;
+            var services = new ServiceCollection();
+
+            services.AddSingleton<IConfiguration>(configuration);
+            services.AddLogging();
+            services.AddNuGetFeed(feed =>
+            {
+                feed.AddSqliteDatabase();
+                feed.AddFileStorage();
+            });
+
+            return services.BuildServiceProvider();
         }
     }
 }

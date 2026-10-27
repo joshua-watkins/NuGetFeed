@@ -1,5 +1,5 @@
 using System;
-using BaGet.Core;
+using NuGetFeed.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -9,9 +9,9 @@ namespace NuGetFeed;
 
 public static class SqliteApplicationExtensions
 {
-    public static BaGetApplication AddSqliteDatabase(this BaGetApplication app)
+    public static NuGetFeedApplication AddSqliteDatabase(this NuGetFeedApplication app)
     {
-        app.Services.AddBaGetDbContextProvider<SqliteContext>("Sqlite", (provider, options) =>
+        app.Services.AddNuGetFeedDbContextProvider<SqliteContext>("Sqlite", (provider, options) =>
         {
             var databaseOptions = provider.GetRequiredService<IOptionsSnapshot<DatabaseOptions>>();
 
@@ -21,8 +21,8 @@ public static class SqliteApplicationExtensions
         return app;
     }
 
-    public static BaGetApplication AddSqliteDatabase(
-        this BaGetApplication app,
+    public static NuGetFeedApplication AddSqliteDatabase(
+        this NuGetFeedApplication app,
         Action<DatabaseOptions> configure)
     {
         app.AddSqliteDatabase();

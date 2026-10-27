@@ -1,6 +1,6 @@
 # NuGet Feed
 
-[NuGet] and [symbol] server.
+[NuGet] and [symbol] server. Implements https://learn.microsoft.com/en-us/nuget/api/overview
 
 ## Getting Started
 

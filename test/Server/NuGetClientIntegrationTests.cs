@@ -12,14 +12,14 @@ using NuGetFeed.Server.Tests.Support;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace BaGet.Tests
+namespace NuGetFeed.Server.Tests
 {
     /// <summary>
-    /// Uses the official NuGet client to interact with the BaGet test host.
+    /// Uses the official NuGet client to interact with the NuGetFeed test host.
     /// </summary>
     public class NuGetClientIntegrationTests : IDisposable
     {
-        private readonly BaGetApplication _app;
+        private readonly NuGetFeedTestApplication _app;
         private readonly HttpClient _client;
 
         private readonly Stream _packageStream;
@@ -31,7 +31,7 @@ namespace BaGet.Tests
 
         public NuGetClientIntegrationTests(ITestOutputHelper output)
         {
-            _app = new BaGetApplication(output);
+            _app = new NuGetFeedTestApplication(output);
             _client = _app.CreateDefaultClient();
             _packageStream = TestResources.GetResourceStream(TestResources.Package);
 
@@ -53,7 +53,7 @@ namespace BaGet.Tests
         {
             var index = await _repository.GetResourceAsync<ServiceIndexResourceV3>();
 
-            Assert.Equal(12, index.Entries.Count);
+            Assert.Equal(14, index.Entries.Count);
 
             Assert.NotEmpty(index.GetServiceEntries("PackageBaseAddress/3.0.0"));
             Assert.NotEmpty(index.GetServiceEntries("PackagePublish/2.0.0"));
@@ -61,6 +61,7 @@ namespace BaGet.Tests
             Assert.NotEmpty(index.GetServiceEntries("SearchAutocompleteService"));
             Assert.NotEmpty(index.GetServiceEntries("SearchQueryService"));
             Assert.NotEmpty(index.GetServiceEntries("SymbolPackagePublish/4.9.0"));
+            Assert.NotEmpty(index.GetServiceEntries("ReadmeUriTemplate/6.13.0"));
         }
 
         [Fact]

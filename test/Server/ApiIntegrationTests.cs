@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace BaGet.Tests;
+namespace NuGetFeed.Server.Tests;
 
 public class ApiIntegrationTests : IDisposable
 {
-    private readonly BaGetApplication _app;
+    private readonly NuGetFeedTestApplication _app;
     private readonly HttpClient _client;
 
     private readonly Stream _packageStream;
@@ -19,7 +19,7 @@ public class ApiIntegrationTests : IDisposable
 
     public ApiIntegrationTests(ITestOutputHelper output)
     {
-        _app = new BaGetApplication(output);
+        _app = new NuGetFeedTestApplication(output);
         _client = _app.CreateClient();
 
         _packageStream = TestResources.GetResourceStream(TestResources.Package);

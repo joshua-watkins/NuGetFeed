@@ -4,55 +4,41 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using BaGet.Web;
 using Moq;
 using NuGet.Versioning;
-using NuGetFeed;
-using NuGetFeed.Content;
-using NuGetFeed.Entities;
-using NuGetFeed.Search;
+using NuGetFeed.Models;
+using NuGetFeed.PackageDetails;
+using NuGetFeed.Pages;
 using Xunit;
 
 namespace NuGetFeed.Website.Tests;
 
 public class PackageModelFacts
 {
-    private readonly Mock<IPackageContentService> _content;
-    private readonly Mock<IPackageService> _packages;
-    private readonly Mock<ISearchService> _search;
-    private readonly Mock<IUrlGenerator> _url;
+    private readonly Mock<IPackageDetailsClient> _packages;
     private readonly PackageModel _target;
 
     private readonly CancellationToken _cancellation = CancellationToken.None;
 
     public PackageModelFacts()
     {
-        _content = new Mock<IPackageContentService>();
-        _packages = new Mock<IPackageService>();
-        _search = new Mock<ISearchService>();
-        _url = new Mock<IUrlGenerator>();
-        _target = new PackageModel(
-            _packages.Object,
-            _content.Object,
-            _search.Object,
-            _url.Object);
+        _packages = new Mock<IPackageDetailsClient>();
+        _target = new PackageModel(_packages.Object, FeedConnectionFacts.CreateRemoteFeed());
 
-        _search
-            .Setup(s => s.FindDependentsAsync("testpackage", _cancellation))
-            .ReturnsAsync(new DependentsResponse());
+        _packages
+            .Setup(p => p.GetPackageDependentsAsync("testpackage", _cancellation))
+            .ReturnsAsync(new DependentsResponse { Data = new List<PackageDependent>() });
     }
 
     [Fact]
     public async Task ReturnsNotFound()
     {
-        _packages
-            .Setup(m => m.FindPackagesAsync("testpackage", _cancellation))
-            .ReturnsAsync(new List<Package>());
+        SetupPackages();
 
         await _target.OnGetAsync("testpackage", "1.0.0", _cancellation);
 
         Assert.False(_target.Found);
-        Assert.Equal("testpackage", _target.Package.Id);
+        Assert.Equal("testpackage", _target.Package.PackageId);
         Assert.Null(_target.DependencyGroups);
         Assert.Null(_target.Versions);
     }
@@ -60,17 +46,12 @@ public class PackageModelFacts
     [Fact]
     public async Task ReturnsNotFoundIfAllUnlisted()
     {
-        _packages
-            .Setup(m => m.FindPackagesAsync("testpackage", _cancellation))
-            .ReturnsAsync(new List<Package>
-            {
-                CreatePackage("1.0.0", listed: false),
-            });
+        SetupPackages(CreatePackage("1.0.0", listed: false));
 
         await _target.OnGetAsync("testpackage", version: null, _cancellation);
 
         Assert.False(_target.Found);
-        Assert.Equal("testpackage", _target.Package.Id);
+        Assert.Equal("testpackage", _target.Package.PackageId);
         Assert.Null(_target.DependencyGroups);
         Assert.Null(_target.Versions);
     }
@@ -78,20 +59,16 @@ public class PackageModelFacts
     [Fact]
     public async Task ReturnsRequestedVersion()
     {
-        _packages
-            .Setup(m => m.FindPackagesAsync("testpackage", _cancellation))
-            .ReturnsAsync(new List<Package>
-            {
-                CreatePackage("1.0.0"),
-                CreatePackage("2.0.0"),
-                CreatePackage("3.0.0"),
-            });
+        SetupPackages(
+            CreatePackage("1.0.0"),
+            CreatePackage("2.0.0"),
+            CreatePackage("3.0.0"));
 
         await _target.OnGetAsync("testpackage", "2.0.0", _cancellation);
 
         Assert.True(_target.Found);
-        Assert.Equal("testpackage", _target.Package.Id);
-        Assert.Equal("2.0.0", _target.Package.NormalizedVersionString);
+        Assert.Equal("testpackage", _target.Package.PackageId);
+        Assert.Equal("2.0.0", _target.Version.ToNormalizedString());
 
         Assert.Equal(3, _target.Versions.Count);
         Assert.Equal("3.0.0", _target.Versions[0].Version.OriginalVersion);
@@ -105,20 +82,16 @@ public class PackageModelFacts
     [Fact]
     public async Task ReturnsRequestedUnlistedVersion()
     {
-        _packages
-            .Setup(m => m.FindPackagesAsync("testpackage", _cancellation))
-            .ReturnsAsync(new List<Package>
-            {
-                CreatePackage("1.0.0"),
-                CreatePackage("2.0.0", listed: false),
-                CreatePackage("3.0.0"),
-            });
+        SetupPackages(
+            CreatePackage("1.0.0"),
+            CreatePackage("2.0.0", listed: false),
+            CreatePackage("3.0.0"));
 
         await _target.OnGetAsync("testpackage", "2.0.0", _cancellation);
 
         Assert.True(_target.Found);
-        Assert.Equal("testpackage", _target.Package.Id);
-        Assert.Equal("2.0.0", _target.Package.NormalizedVersionString);
+        Assert.Equal("testpackage", _target.Package.PackageId);
+        Assert.Equal("2.0.0", _target.Version.ToNormalizedString());
 
         Assert.Equal(2, _target.Versions.Count);
         Assert.Equal("3.0.0", _target.Versions[0].Version.OriginalVersion);
@@ -130,20 +103,16 @@ public class PackageModelFacts
     [Fact]
     public async Task FallsBackToLatestListedVersion()
     {
-        _packages
-            .Setup(m => m.FindPackagesAsync("testpackage", _cancellation))
-            .ReturnsAsync(new List<Package>
-            {
-                CreatePackage("1.0.0"),
-                CreatePackage("2.0.0"),
-                CreatePackage("3.0.0", listed: false),
-            });
+        SetupPackages(
+            CreatePackage("1.0.0"),
+            CreatePackage("2.0.0"),
+            CreatePackage("3.0.0", listed: false));
 
         await _target.OnGetAsync("testpackage", "4.0.0", _cancellation);
 
         Assert.True(_target.Found);
-        Assert.Equal("testpackage", _target.Package.Id);
-        Assert.Equal("2.0.0", _target.Package.NormalizedVersionString);
+        Assert.Equal("testpackage", _target.Package.PackageId);
+        Assert.Equal("2.0.0", _target.Version.ToNormalizedString());
 
         Assert.Equal(2, _target.Versions.Count);
         Assert.Equal("2.0.0", _target.Versions[0].Version.OriginalVersion);
@@ -160,12 +129,7 @@ public class PackageModelFacts
     [InlineData(new[] { "tEmPlAte", "dOtNeTtOoL" }, /*expectDotnetTemplate: */ true, /*expectDotnetTool: */ true)]
     public async Task HandlesPackageTypes(IEnumerable<string> packageTypes, bool expectDotnetTemplate, bool expectDotnetTool)
     {
-        _packages
-            .Setup(m => m.FindPackagesAsync("testpackage", _cancellation))
-            .ReturnsAsync(new List<Package>
-            {
-                CreatePackage("1.0.0", packageTypes: packageTypes)
-            });
+        SetupPackages(CreatePackage("1.0.0", packageTypes: packageTypes));
 
         await _target.OnGetAsync("testpackage", "1.0.0", _cancellation);
 
@@ -175,17 +139,26 @@ public class PackageModelFacts
     }
 
     [Fact]
+    public async Task HandlesMissingPackageTypes()
+    {
+        var package = CreatePackage("1.0.0");
+        package.PackageTypes = null;
+        SetupPackages(package);
+
+        await _target.OnGetAsync("testpackage", "1.0.0", _cancellation);
+
+        Assert.True(_target.Found);
+        Assert.False(_target.IsDotnetTemplate);
+        Assert.False(_target.IsDotnetTool);
+    }
+
+    [Fact]
     public async Task FindsDependentPackages()
     {
-        _packages
-            .Setup(m => m.FindPackagesAsync("testpackage", _cancellation))
-            .ReturnsAsync(new List<Package>
-            {
-                CreatePackage("1.0.0")
-            });
+        SetupPackages(CreatePackage("1.0.0"));
 
-        _search
-            .Setup(s => s.FindDependentsAsync("testpackage", _cancellation))
+        _packages
+            .Setup(p => p.GetPackageDependentsAsync("testpackage", _cancellation))
             .ReturnsAsync(new DependentsResponse
             {
                 Data = new List<PackageDependent>
@@ -203,34 +176,28 @@ public class PackageModelFacts
     }
 
     [Fact]
-    public async Task GroupsVersions()
+    public async Task GroupsDependencies()
     {
-        _packages
-            .Setup(m => m.FindPackagesAsync("testpackage", _cancellation))
-            .ReturnsAsync(new List<Package>
+        SetupPackages(CreatePackage("1.0.0", dependencyGroups: new[]
+        {
+            new DependencyGroupItem
             {
-                CreatePackage("1.0.0", dependencies: new[]
+                TargetFramework = "net5.0",
+                Dependencies = new List<DependencyItem>
                 {
-                    new PackageDependency
-                    {
-                        TargetFramework = "net5.0",
-                        Id = "Dependency1",
-                        VersionRange = "[1.0.0, )",
-                    },
-                    new PackageDependency
-                    {
-                        TargetFramework = "net4.8",
-                        Id = "Dependency2",
-                        VersionRange = "[2.0.0, )",
-                    },
-                    new PackageDependency
-                    {
-                        TargetFramework = "net5.0",
-                        Id = "Dependency3",
-                        VersionRange = "[3.0.0, )",
-                    },
-                })
-            });
+                    new DependencyItem { Id = "Dependency1", Range = "[1.0.0, )" },
+                    new DependencyItem { Id = "Dependency3", Range = "[3.0.0, )" },
+                },
+            },
+            new DependencyGroupItem
+            {
+                TargetFramework = "net4.8",
+                Dependencies = new List<DependencyItem>
+                {
+                    new DependencyItem { Id = "Dependency2", Range = "[2.0.0, )" },
+                },
+            },
+        }));
 
         await _target.OnGetAsync("testpackage", "1.0.0", _cancellation);
 
@@ -260,20 +227,17 @@ public class PackageModelFacts
     [InlineData("net4.8", ".NET Framework 4.8")]
     public async Task PrettifiesTargetFramework(string targetFramework, string expectedResult)
     {
-        _packages
-            .Setup(m => m.FindPackagesAsync("testpackage", _cancellation))
-            .ReturnsAsync(new List<Package>
+        SetupPackages(CreatePackage("1.0.0", dependencyGroups: new[]
+        {
+            new DependencyGroupItem
             {
-                CreatePackage("1.0.0", dependencies: new[]
+                TargetFramework = targetFramework,
+                Dependencies = new List<DependencyItem>
                 {
-                   new PackageDependency
-                   {
-                       TargetFramework = targetFramework,
-                       Id = "DependencyPackage",
-                       VersionRange = "[1.0.0, )",
-                   }
-                })
-            });
+                    new DependencyItem { Id = "DependencyPackage", Range = "[1.0.0, )" },
+                },
+            },
+        }));
 
         await _target.OnGetAsync("testpackage", "1.0.0", _cancellation);
 
@@ -285,21 +249,33 @@ public class PackageModelFacts
     [Fact]
     public async Task StatisticsIncludeUnlistedPackages()
     {
-        var now = DateTime.Now;
+        var now = DateTimeOffset.UtcNow;
 
-        _packages
-            .Setup(m => m.FindPackagesAsync("testpackage", _cancellation))
-            .ReturnsAsync(new List<Package>
-            {
-                CreatePackage("1.0.0", downloads: 10, published: DateTime.Now.AddDays(-2)),
-                CreatePackage("2.0.0", listed: false, downloads: 5, published: now),
-            });
+        SetupPackages(
+            CreatePackage("1.0.0", downloads: 10, published: now.AddDays(-2)),
+            CreatePackage("2.0.0", listed: false, downloads: 5, published: now));
 
         await _target.OnGetAsync("testpackage", "1.0.0", _cancellation);
 
         Assert.True(_target.Found);
         Assert.Equal(15, _target.TotalDownloads);
-        Assert.Equal(now, _target.LastUpdated);
+        Assert.Equal(now.UtcDateTime, _target.LastUpdated);
+    }
+
+    [Fact]
+    public async Task UsesFeedUrls()
+    {
+        var package = CreatePackage("1.0.0");
+        package.IconUrl = "https://feed.test/icon";
+        package.LicenseUrl = "";
+        package.PackageContentUrl = "https://feed.test/testpackage.1.0.0.nupkg";
+        SetupPackages(package);
+
+        await _target.OnGetAsync("testpackage", "1.0.0", _cancellation);
+
+        Assert.Equal("https://feed.test/icon", _target.IconUrl);
+        Assert.Null(_target.LicenseUrl);
+        Assert.Equal("https://feed.test/testpackage.1.0.0.nupkg", _target.PackageDownloadUrl);
     }
 
     [Fact]
@@ -316,15 +292,10 @@ public class PackageModelFacts
 
             readmeStream.Position = 0;
 
-            _packages
-                .Setup(m => m.FindPackagesAsync("testpackage", _cancellation))
-                .ReturnsAsync(new List<Package>
-                {
-                    CreatePackage("1.0.0", hasReadme: true),
-                });
+            SetupPackages(CreatePackage("1.0.0", hasReadme: true));
 
-            _content
-                .Setup(c => c.GetPackageReadmeStreamOrNullAsync(
+            _packages
+                .Setup(p => p.GetPackageReadmeStreamOrNullAsync(
                     "testpackage",
                     It.Is<NuGetVersion>(v => v.OriginalVersion == "1.0.0"),
                     _cancellation))
@@ -338,32 +309,32 @@ public class PackageModelFacts
         }
     }
 
-    private Package CreatePackage(
+    private void SetupPackages(params NuGetFeedPackageMetadata[] packages)
+    {
+        _packages
+            .Setup(p => p.GetPackageMetadataAsync("testpackage", _cancellation))
+            .ReturnsAsync(packages.ToList());
+    }
+
+    private NuGetFeedPackageMetadata CreatePackage(
         string version,
         long downloads = 0,
         bool hasReadme = false,
         bool listed = true,
-        DateTime? published = null,
-        IEnumerable<PackageDependency> dependencies = null,
+        DateTimeOffset? published = null,
+        IEnumerable<DependencyGroupItem> dependencyGroups = null,
         IEnumerable<string> packageTypes = null)
     {
-        published = published ?? DateTime.Now;
-        dependencies = dependencies ?? Array.Empty<PackageDependency>();
-        packageTypes = packageTypes ?? Array.Empty<string>();
-
-        return new Package
+        return new NuGetFeedPackageMetadata
         {
-            Id = "testpackage",
+            PackageId = "testpackage",
+            Version = version,
             Downloads = downloads,
             HasReadme = hasReadme,
             Listed = listed,
-            NormalizedVersionString = version,
-            Published = published.Value,
-
-            Dependencies = dependencies.ToList(),
-            PackageTypes = packageTypes
-                .Select(name => new PackageType { Name = name })
-                .ToList(),
+            Published = published ?? DateTimeOffset.UtcNow,
+            DependencyGroups = (dependencyGroups ?? Array.Empty<DependencyGroupItem>()).ToList(),
+            PackageTypes = (packageTypes ?? Array.Empty<string>()).ToList(),
         };
     }
 }

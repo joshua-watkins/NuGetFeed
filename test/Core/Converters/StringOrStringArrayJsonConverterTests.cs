@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using Xunit;
 
-namespace BaGet.Protocol.Tests
+namespace NuGetFeed.Core.Tests
 {
     public class StringOrStringArrayJsonConverterTests
     {

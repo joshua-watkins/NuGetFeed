@@ -36,9 +36,11 @@ public class RawSearchClient : ISearchClient
         int take = 20,
         bool includePrerelease = true,
         bool includeSemVer2 = true,
+        string packageType = null,
+        string framework = null,
         CancellationToken cancellationToken = default)
     {
-        var url = AddSearchQueryString(_searchUrl, query, skip, take, includePrerelease, includeSemVer2, "q");
+        var url = AddSearchQueryString(_searchUrl, query, skip, take, includePrerelease, includeSemVer2, "q", packageType, framework);
 
         return await _httpClient.GetFromJsonAsync<SearchResponse>(url, cancellationToken);
     }
@@ -50,7 +52,9 @@ public class RawSearchClient : ISearchClient
         int? take,
         bool includePrerelease,
         bool includeSemVer2,
-        string queryParamName)
+        string queryParamName,
+        string packageType = null,
+        string framework = null)
     {
         var queryString = new Dictionary<string, string>();
 
@@ -58,6 +62,8 @@ public class RawSearchClient : ISearchClient
         if (take.HasValue) queryString["take"] = take.ToString();
         if (includePrerelease) queryString["prerelease"] = true.ToString();
         if (includeSemVer2) queryString["semVerLevel"] = "2.0.0";
+        if (!string.IsNullOrEmpty(packageType)) queryString["packageType"] = packageType;
+        if (!string.IsNullOrEmpty(framework)) queryString["framework"] = framework;
 
         if (!string.IsNullOrEmpty(query))
         {

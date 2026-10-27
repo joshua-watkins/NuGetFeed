@@ -6,7 +6,7 @@ using NuGet.Versioning;
 using NuGetFeed.Models;
 using NuGetFeed.PackageContent;
 
-namespace BaGet.Protocol;
+namespace NuGetFeed;
 
 public partial class NuGetClientFactory
 {

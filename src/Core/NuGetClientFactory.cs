@@ -3,6 +3,7 @@ using NuGetFeed.Catalog;
 using NuGetFeed.Extensions;
 using NuGetFeed.Models;
 using NuGetFeed.PackageContent;
+using NuGetFeed.PackageDetails;
 using NuGetFeed.PackageMetadata;
 using NuGetFeed.Search;
 using NuGetFeed.ServiceIndex;
@@ -11,7 +12,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BaGet.Protocol;
+namespace NuGetFeed;
 
 /// <summary>
 /// The <see cref="NuGetClientFactory"/> creates clients to interact with a NuGet server.
@@ -117,6 +118,14 @@ public partial class NuGetClientFactory
         return new CatalogClient(this);
     }
 
+    /// <summary>
+    /// Create a client to fetch the information shown on a package's details page.
+    /// </summary>
+    /// <returns>A client to fetch package details.</returns>
+    public virtual IPackageDetailsClient CreatePackageDetailsClient()
+    {
+        return new PackageDetailsClient(this);
+    }
 
     private Task<ServiceIndexResponse> GetServiceIndexAsync(CancellationToken cancellationToken = default)
     {
@@ -146,6 +155,11 @@ public partial class NuGetClientFactory
     private Task<ICatalogClient> GetCatalogClientAsync(CancellationToken cancellationToken = default)
     {
         return GetAsync(c => c.CatalogClient, cancellationToken);
+    }
+
+    private Task<IPackageDetailsClient> GetPackageDetailsClientAsync(CancellationToken cancellationToken = default)
+    {
+        return GetAsync(c => c.PackageDetailsClient, cancellationToken);
     }
 
     private async Task<T> GetAsync<T>(Func<NuGetClients, T> clientFactory, CancellationToken cancellationToken)
@@ -180,6 +194,11 @@ public partial class NuGetClientFactory
                     var autocompleteClient = autocompleteResourceUrl == null
                         ? new NullAutocompleteClient() as IAutocompleteClient
                         : new RawAutocompleteClient(_httpClient, autocompleteResourceUrl);
+                    var packageDetailsClient = new RawPackageDetailsClient(
+                        _httpClient,
+                        metadataResourceUrl,
+                        serviceIndex.GetReadmeUriTemplate(),
+                        serviceIndex.GetPackageDependentsResourceUrl());
 
                     _clients = new NuGetClients
                     {
@@ -190,6 +209,7 @@ public partial class NuGetClientFactory
                         SearchClient = searchClient,
                         AutocompleteClient = autocompleteClient,
                         CatalogClient = catalogClient,
+                        PackageDetailsClient = packageDetailsClient,
                     };
                 }
             }
@@ -212,5 +232,6 @@ public partial class NuGetClientFactory
         public ISearchClient SearchClient { get; set; }
         public IAutocompleteClient AutocompleteClient { get; set; }
         public ICatalogClient CatalogClient { get; set; }
+        public IPackageDetailsClient PackageDetailsClient { get; set; }
     }
 }

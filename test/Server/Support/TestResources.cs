@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace BaGet.Tests
+namespace NuGetFeed.Server.Tests
 {
     public static class TestResources
     {

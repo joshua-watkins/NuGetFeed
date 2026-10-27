@@ -3,7 +3,7 @@ using NuGetFeed.Core.Tests.Support;
 using NuGetFeed.Search;
 using Xunit;
 
-namespace BaGet.Protocol.Tests
+namespace NuGetFeed.Core.Tests
 {
     public class RawAutocompleteClientTests : IClassFixture<ProtocolFixture>
     {

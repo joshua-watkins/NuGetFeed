@@ -2,7 +2,7 @@ using NuGetFeed.Converters;
 using System.Text.Json;
 using Xunit;
 
-namespace BaGet.Protocol.Tests
+namespace NuGetFeed.Core.Tests
 {
     public class PackageDependencyRangeJsonConverterTests
     {

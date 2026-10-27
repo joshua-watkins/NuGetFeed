@@ -8,60 +8,63 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using NuGetFeed.Models;
 using NuGetFeed.Search;
 
-namespace BaGet.Web
+namespace NuGetFeed.Pages;
+
+public class IndexModel : PageModel
 {
-    public class IndexModel : PageModel
+    private readonly ISearchClient _search;
+    private readonly FeedConnection _feed;
+
+    public IndexModel(ISearchClient search, FeedConnection feed)
     {
-        private readonly ISearchService _search;
+        _search = search ?? throw new ArgumentNullException(nameof(search));
+        _feed = feed ?? throw new ArgumentNullException(nameof(feed));
+    }
 
-        public IndexModel(ISearchService search)
+    public const int ResultsPerPage = 20;
+
+    [BindProperty(Name = "q", SupportsGet = true)]
+    public string Query { get; set; }
+
+    [BindProperty(Name = "p", SupportsGet = true)]
+    [Range(1, int.MaxValue)]
+    public int PageIndex { get; set; } = 1;
+
+    [BindProperty(SupportsGet = true)]
+    public string PackageType { get; set; } = "any";
+
+    [BindProperty(SupportsGet = true)]
+    public string Framework { get; set; } = "any";
+
+    [BindProperty(SupportsGet = true)]
+    public bool Prerelease { get; set; } = true;
+
+    public IReadOnlyList<SearchResult> Packages { get; private set; }
+
+    public async Task<IActionResult> OnGetAsync(CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid) return BadRequest();
+
+        var packageType = PackageType == "any" ? null : PackageType;
+        var framework = Framework == "any" ? null : Framework;
+
+        var search = await _search.SearchAsync(
+            Query,
+            skip: (PageIndex - 1) * ResultsPerPage,
+            take: ResultsPerPage,
+            includePrerelease: Prerelease,
+            includeSemVer2: true,
+            packageType,
+            framework,
+            cancellationToken);
+
+        Packages = search.Data ?? Array.Empty<SearchResult>();
+
+        foreach (var package in Packages)
         {
-            _search = search ?? throw new ArgumentNullException(nameof(search));
+            package.IconUrl = _feed.ToPublicUrl(package.IconUrl);
         }
 
-        public const int ResultsPerPage = 20;
-
-        [BindProperty(Name = "q", SupportsGet = true)]
-        public string Query { get; set; }
-
-        [BindProperty(Name = "p", SupportsGet = true)]
-        [Range(1, int.MaxValue)]
-        public int PageIndex { get; set; } = 1;
-
-        [BindProperty(SupportsGet = true)]
-        public string PackageType { get; set; } = "any";
-
-        [BindProperty(SupportsGet = true)]
-        public string Framework { get; set; } = "any";
-
-        [BindProperty(SupportsGet = true)]
-        public bool Prerelease { get; set; } = true;
-
-        public IReadOnlyList<SearchResult> Packages { get; private set; }
-
-        public async Task<IActionResult> OnGetAsync(CancellationToken cancellationToken)
-        {
-            if (!ModelState.IsValid) return BadRequest();
-
-            var packageType = PackageType == "any" ? null : PackageType;
-            var framework = Framework == "any" ? null : Framework;
-
-            var search = await _search.SearchAsync(
-                new SearchRequest
-                {
-                    Skip = (PageIndex - 1) * ResultsPerPage,
-                    Take = ResultsPerPage,
-                    IncludePrerelease = Prerelease,
-                    IncludeSemVer2 = true,
-                    PackageType = packageType,
-                    Framework = framework,
-                    Query = Query,
-                },
-                cancellationToken);
-
-            Packages = search.Data;
-
-            return Page();
-        }
+        return Page();
     }
 }

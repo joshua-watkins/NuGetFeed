@@ -1,5 +1,3 @@
-using BaGet.Protocol;
-using BaGet.Protocol.Tests;
 using NuGetFeed;
 using NuGetFeed.Catalog;
 using NuGetFeed.Core.Tests;

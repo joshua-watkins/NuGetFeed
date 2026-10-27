@@ -1,4 +1,3 @@
-using NuGetFeed.Metadata;
 using NuGetFeed.Models;
 using System;
 using System.Collections.Generic;
@@ -7,15 +6,15 @@ using System.Reflection;
 using System.Text.Json.Serialization;
 using Xunit;
 
-namespace BaGet.Core.Tests.Metadata
+namespace NuGetFeed.Core.Tests.Metadata
 {
     public class ModelTests
     {
         /// <summary>
-        /// BaGet extends the NuGet protocol to add more functionality.
+        /// NuGetFeed extends the NuGet protocol to add more functionality.
         /// Since System.Text.Json does not support polymorphic serialization,
         /// this was implemented by duplicating the protocol's models from the
-        /// "BaGet.Protocol" project. These tests ensure that the duplicates
+        /// "NuGetFeed.Core" project. These tests ensure that the duplicates
         /// stay in sync with the original protocol models.
         /// </summary>
         public static IEnumerable<object[]> ExtendedModelsData()
@@ -25,7 +24,7 @@ namespace BaGet.Core.Tests.Metadata
                 new ExtendedModelData
                 {
                     OriginalType = typeof(RegistrationIndexResponse),
-                    DerivedType = typeof(BaGetRegistrationIndexResponse),
+                    DerivedType = typeof(NuGetFeedRegistrationIndexResponse),
 
                     AddedProperties = new Dictionary<string, Type>
                     {
@@ -38,7 +37,7 @@ namespace BaGet.Core.Tests.Metadata
                             "Pages",
                             (
                                 From: typeof(IReadOnlyList<RegistrationIndexPage>),
-                                To: typeof(IReadOnlyList<BaGetRegistrationIndexPage>)
+                                To: typeof(IReadOnlyList<NuGetFeedRegistrationIndexPage>)
                             )
                         },
                     }
@@ -50,7 +49,7 @@ namespace BaGet.Core.Tests.Metadata
                 new ExtendedModelData
                 {
                     OriginalType = typeof(RegistrationIndexPage),
-                    DerivedType = typeof(BaGetRegistrationIndexPage),
+                    DerivedType = typeof(NuGetFeedRegistrationIndexPage),
 
                     ModifiedProperties = new Dictionary<string, (Type From, Type To)>
                     {
@@ -58,7 +57,7 @@ namespace BaGet.Core.Tests.Metadata
                             "ItemsOrNull",
                             (
                                 From: typeof(IReadOnlyList<RegistrationIndexPageItem>),
-                                To: typeof(IReadOnlyList<BaGetRegistrationIndexPageItem>)
+                                To: typeof(IReadOnlyList<NuGetFeedRegistrationIndexPageItem>)
                             )
                         },
                     }
@@ -70,12 +69,12 @@ namespace BaGet.Core.Tests.Metadata
                 new ExtendedModelData
                 {
                     OriginalType = typeof(RegistrationIndexPageItem),
-                    DerivedType = typeof(BaGetRegistrationIndexPageItem),
+                    DerivedType = typeof(NuGetFeedRegistrationIndexPageItem),
 
                     ModifiedProperties = new Dictionary<string, (Type From, Type To)>
                     {
                         {
-                            "PackageMetadata", ( From: typeof(PackageMetadata), To: typeof(BaGetPackageMetadata) )
+                            "PackageMetadata", ( From: typeof(Models.PackageMetadata), To: typeof(NuGetFeedPackageMetadata) )
                         },
                     }
                 }
@@ -85,8 +84,8 @@ namespace BaGet.Core.Tests.Metadata
             {
                 new ExtendedModelData
                 {
-                    OriginalType = typeof(PackageMetadata),
-                    DerivedType = typeof(BaGetPackageMetadata),
+                    OriginalType = typeof(Models.PackageMetadata),
+                    DerivedType = typeof(NuGetFeedPackageMetadata),
 
                     AddedProperties = new Dictionary<string, Type>
                     {
@@ -212,24 +211,24 @@ namespace BaGet.Core.Tests.Metadata
         public class ExtendedModelData
         {
             /// <summary>
-            /// The model's type in the "BaGet.Protocol" project that was extended.
+            /// The model's type in the "NuGetFeed.Core" project that was extended.
             /// </summary>
             public Type? OriginalType { get; set; }
 
             /// <summary>
-            /// The model's type in the "BaGet.Core" project that extends a
-            /// type from the "BaGet.Protocol" project.
+            /// The model's type in the "NuGetFeed.Core" project that extends a
+            /// type from the "NuGetFeed.Core" project.
             /// </summary>
             public Type? DerivedType { get; set; }
 
             /// <summary>
-            /// The properties added by the model type in the "BaGet.Core" project.
+            /// The properties added by the model type in the "NuGetFeed.Core" project.
             /// </summary>
             public Dictionary<string, Type> AddedProperties { get; set; } = new Dictionary<string, Type>();
 
             /// <summary>
             /// The properties whose types were modified by the model type in the
-            /// "BaGet.Core" project.
+            /// "NuGetFeed.Core" project.
             /// </summary>
             public Dictionary<string, (Type From, Type To)> ModifiedProperties { get; set; }
                 = new Dictionary<string, (Type From, Type To)>();

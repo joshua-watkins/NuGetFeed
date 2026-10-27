@@ -1,38 +1,37 @@
-# BaGet service for Linux
+# NuGetFeed service for Linux
 
-This is the BaGet light weight NuGet server built as a Linux service.
+The NuGetFeed server and website, built to run as a systemd service.
+Run from a shell, it behaves like a normal console application.
 
 ## Building for Linux
 
-To build for your Linux platform:
+Publish for your Linux runtime, for example:
 
-* Create a new Publishing Profile
-* Select FolderProfile
-* Set the Target Runtime to the required Linux runtime
-* Publish.
-
-This will create an application that can be directly run on Linux.
-That is you can directly call ./BaGet on the target Linux architecture
-and the service will start in the same way that it starts from the
-commandline in Windows or in the Visual Studio debugger.
+```sh
+dotnet publish pub/Linux/Linux.csproj -c Release -r linux-x64 --self-contained -o out
+```
 
 ## Installation
 
-Installation of BaGet on Linux comprises the following steps:
+Installation of NuGetFeed on Linux comprises the following steps:
 
-* Copy the BaGet build to /usr/share/baget
-* Make the BaGet application executable
-* Edit the appsettings.json to your needs
-* Edit /usr/share/baget/baget.service to your needs
-* Copy the baget.service file to /etc/systemd/system/baget.service
-* Enable the baget service
-* Start the baget service
+* Create the `nugetfeed` user the service runs as
+* Copy the NuGetFeed build to /usr/share/nugetfeed
+* Make the NuGetFeed application executable
+* Edit /usr/share/nugetfeed/appsettings.json to your needs
+* Edit /usr/share/nugetfeed/nugetfeed.service to your needs
+* Install, enable and start the service
 
+```sh
+sudo useradd --system --no-create-home --shell /usr/sbin/nologin nugetfeed
+sudo cp -r out /usr/share/nugetfeed
+sudo chmod 0755 /usr/share/nugetfeed/NuGetFeed
+sudo vi /usr/share/nugetfeed/appsettings.json
+sudo vi /usr/share/nugetfeed/nugetfeed.service
+sudo cp /usr/share/nugetfeed/nugetfeed.service /etc/systemd/system/nugetfeed.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now nugetfeed
 ```
-$chmod 0755 /usr/share/baget/BaGet
-$vi /usr/share/baget/appsettings.json
-$vi /usr/share/baget/baget.service
-$sudo cp /usr/share/baget/baget.service /etc/systemd/system/baget.service
-$sudo systemctl enable baget
-$sudo systemctl start baget
-```
+
+The database and packages are stored in /var/lib/nugetfeed, which systemd creates for the service.
+Logs go to the journal: `journalctl -u nugetfeed -f`.
