@@ -3,10 +3,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using NuGet.Versioning;
 using NuGetFeed.Authentication;
-using NuGetFeed.Configuration;
 using NuGetFeed.Extensions;
 using NuGetFeed.Indexing;
 using NuGetFeed.Storage;
@@ -25,17 +23,11 @@ internal static class PackagePublishEndpoints
     // See: https://docs.microsoft.com/en-us/nuget/api/package-publish-resource#push-a-package
     public static async Task<IResult> UploadPackageAsync(
         HttpRequest request,
-        IAuthenticationService authentication,
+        FeedAccess access,
         IPackageIndexingService indexer,
-        IOptionsSnapshot<NuGetFeedOptions> options,
         ILoggerFactory loggerFactory,
         CancellationToken cancellationToken)
     {
-        if (!await EndpointHelpers.IsAuthorizedAsync(request, authentication, options, cancellationToken))
-        {
-            return Results.StatusCode(StatusCodes.Status401Unauthorized);
-        }
-
         try
         {
             using var uploadStream = await request.GetUploadStreamOrNullAsync(cancellationToken);
@@ -44,7 +36,9 @@ internal static class PackagePublishEndpoints
                 return Results.StatusCode(StatusCodes.Status400BadRequest);
             }
 
-            var result = await indexer.IndexAsync(uploadStream, cancellationToken);
+            // Replacing a package deletes the original permanently.
+            var allowOverwrite = access.HasPermission(request.HttpContext.User, FeedPermissions.HardDelete);
+            var result = await indexer.IndexAsync(uploadStream, allowOverwrite, cancellationToken);
 
             return Results.StatusCode(result switch
             {
@@ -65,15 +59,10 @@ internal static class PackagePublishEndpoints
     public static async Task<IResult> DeleteAsync(
         string id,
         string version,
-        HttpRequest request,
-        IAuthenticationService authentication,
         IPackageDeletionService deletionService,
-        IOptionsSnapshot<NuGetFeedOptions> options,
         CancellationToken cancellationToken)
     {
-        if (options.Value.IsReadOnlyMode) return Results.Unauthorized();
         if (!NuGetVersion.TryParse(version, out var nugetVersion)) return Results.NotFound();
-        if (!await authentication.AuthenticateAsync(request.GetApiKey(), cancellationToken)) return Results.Unauthorized();
 
         return await deletionService.TryDeletePackageAsync(id, nugetVersion, cancellationToken)
             ? Results.NoContent()
@@ -84,15 +73,10 @@ internal static class PackagePublishEndpoints
     public static async Task<IResult> RelistAsync(
         string id,
         string version,
-        HttpRequest request,
-        IAuthenticationService authentication,
         IPackageDeletionService deletionService,
-        IOptionsSnapshot<NuGetFeedOptions> options,
         CancellationToken cancellationToken)
     {
-        if (options.Value.IsReadOnlyMode) return Results.Unauthorized();
         if (!NuGetVersion.TryParse(version, out var nugetVersion)) return Results.NotFound();
-        if (!await authentication.AuthenticateAsync(request.GetApiKey(), cancellationToken)) return Results.Unauthorized();
 
         return await deletionService.TryRelistPackageAsync(id, nugetVersion, cancellationToken)
             ? Results.Ok()
@@ -103,17 +87,10 @@ internal static class PackagePublishEndpoints
     // See: https://docs.microsoft.com/en-us/nuget/api/symbol-package-publish-resource
     public static async Task<IResult> UploadSymbolPackageAsync(
         HttpRequest request,
-        IAuthenticationService authentication,
         ISymbolIndexingService indexer,
-        IOptionsSnapshot<NuGetFeedOptions> options,
         ILoggerFactory loggerFactory,
         CancellationToken cancellationToken)
     {
-        if (!await EndpointHelpers.IsAuthorizedAsync(request, authentication, options, cancellationToken))
-        {
-            return Results.StatusCode(StatusCodes.Status401Unauthorized);
-        }
-
         try
         {
             using var uploadStream = await request.GetUploadStreamOrNullAsync(cancellationToken);

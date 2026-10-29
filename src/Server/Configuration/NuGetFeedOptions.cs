@@ -3,10 +3,15 @@ namespace NuGetFeed.Configuration;
 public class NuGetFeedOptions
 {
     /// <summary>
-    /// The API Key required to authenticate package
-    /// operations. If empty, package operations do not require authentication.
+    /// An API key that may do everything, like an <see cref="Authentication.FeedRole.Admin"/> key in
+    /// <see cref="Authorization"/>. If no API keys are set, anyone may do anything.
     /// </summary>
     public string? ApiKey { get; set; }
+
+    /// <summary>
+    /// The API keys and their roles, and what requests without a key may do.
+    /// </summary>
+    public FeedAuthorizationOptions? Authorization { get; set; }
 
     /// <summary>
     /// The application root URL for usage in reverse proxy scenarios.
@@ -31,7 +36,7 @@ public class NuGetFeedOptions
     public bool AllowPackageOverwrites { get; set; } = false;
 
     /// <summary>
-    /// If true, disables package pushing, deleting, and re-listing.
+    /// If true, nobody may change the feed, whatever their API key's role.
     /// </summary>
     public bool IsReadOnlyMode { get; set; } = false;
 

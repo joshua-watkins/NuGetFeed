@@ -50,7 +50,10 @@ public class PackageIndexingService : IPackageIndexingService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task<PackageIndexingResult> IndexAsync(Stream packageStream, CancellationToken cancellationToken)
+    public Task<PackageIndexingResult> IndexAsync(Stream packageStream, CancellationToken cancellationToken)
+        => IndexAsync(packageStream, allowOverwrite: true, cancellationToken);
+
+    public async Task<PackageIndexingResult> IndexAsync(Stream packageStream, bool allowOverwrite, CancellationToken cancellationToken)
     {
         // Try to extract all the necessary information from the package.
         Package package;
@@ -111,7 +114,7 @@ public class PackageIndexingService : IPackageIndexingService
         // The package is well-formed. Ensure this is a new package.
         if (await _packages.ExistsAsync(package.Id, package.Version, cancellationToken))
         {
-            if (!_options.Value.AllowPackageOverwrites)
+            if (!_options.Value.AllowPackageOverwrites || !allowOverwrite)
             {
                 return PackageIndexingResult.PackageAlreadyExists;
             }

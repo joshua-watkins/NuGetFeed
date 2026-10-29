@@ -18,4 +18,5 @@ assembly, so the library is a single DLL. `MapNuGetFeedUI()` serves them under
 
 The website reads the feed from its own application. Set `Website:ServiceIndexUrl` to the service
 index of another feed to show that feed instead, for example `https://api.nuget.org/v3/index.json`.
+If the feed doesn't let anonymous users read it, set `Website:ApiKey` to a `ReadOnly` key.
 If the website can't read the feed, its pages explain that instead of failing.

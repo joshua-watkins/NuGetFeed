@@ -1,9 +1,13 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
+using NuGetFeed.Authentication;
 using NuGetFeed.Endpoints;
 
 namespace NuGetFeed;
 
+/// <summary>
+/// Maps the feed's endpoints. Each one requires the <see cref="FeedPermissions"/> for what it does.
+/// </summary>
 public class NuGetFeedEndpointBuilder
 {
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
@@ -23,64 +27,79 @@ public class NuGetFeedEndpointBuilder
     public void MapCatalogRoutes(IEndpointRouteBuilder endpoints)
     {
         endpoints.MapGet("v3/catalog/index.json", CatalogEndpoints.IndexAsync)
-            .WithName(Routes.CatalogIndexRouteName);
+            .WithName(Routes.CatalogIndexRouteName)
+            .RequireFeedPermission(FeedPermissions.Read);
 
         endpoints.MapGet("v3/catalog/page{page:int}.json", CatalogEndpoints.PageAsync)
-            .WithName(Routes.CatalogPageRouteName);
+            .WithName(Routes.CatalogPageRouteName)
+            .RequireFeedPermission(FeedPermissions.Read);
 
         endpoints.MapGet("v3/catalog/data/{key:int}/{name}", CatalogEndpoints.LeafAsync)
-            .WithName(Routes.CatalogLeafRouteName);
+            .WithName(Routes.CatalogLeafRouteName)
+            .RequireFeedPermission(FeedPermissions.Read);
     }
 
     public void MapDeprecationRoutes(IEndpointRouteBuilder endpoints)
     {
         // Not part of the NuGet protocol: lets administrators deprecate packages.
         endpoints.MapPut("api/package/{id}/{version}/deprecation", PackageDeprecationEndpoints.DeprecateAsync)
-            .WithName(Routes.DeprecationRouteName);
+            .WithName(Routes.DeprecationRouteName)
+            .RequireFeedPermission(FeedPermissions.Deprecate);
 
-        endpoints.MapDelete("api/package/{id}/{version}/deprecation", PackageDeprecationEndpoints.UndeprecateAsync);
+        endpoints.MapDelete("api/package/{id}/{version}/deprecation", PackageDeprecationEndpoints.UndeprecateAsync)
+            .RequireFeedPermission(FeedPermissions.Deprecate);
     }
 
     public void MapVulnerabilityRoutes(IEndpointRouteBuilder endpoints)
     {
         // Not part of the NuGet protocol: lets administrators manage known vulnerabilities.
         endpoints.MapPut("api/vulnerabilities", VulnerabilityEndpoints.UpsertAsync)
-            .WithName(Routes.VulnerabilitiesRouteName);
+            .WithName(Routes.VulnerabilitiesRouteName)
+            .RequireFeedPermission(FeedPermissions.ManageVulnerabilities);
 
-        endpoints.MapDelete("api/vulnerabilities", VulnerabilityEndpoints.DeleteAsync);
+        endpoints.MapDelete("api/vulnerabilities", VulnerabilityEndpoints.DeleteAsync)
+            .RequireFeedPermission(FeedPermissions.ManageVulnerabilities);
 
         endpoints.MapGet("v3/vulnerabilities/index.json", VulnerabilityEndpoints.IndexAsync)
-            .WithName(Routes.VulnerabilityIndexRouteName);
+            .WithName(Routes.VulnerabilityIndexRouteName)
+            .RequireFeedPermission(FeedPermissions.Read);
 
         endpoints.MapGet("v3/vulnerabilities/{name}.json", VulnerabilityEndpoints.VulnerabilityFileAsync)
-            .WithName(Routes.VulnerabilityFileRouteName);
+            .WithName(Routes.VulnerabilityFileRouteName)
+            .RequireFeedPermission(FeedPermissions.Read);
     }
 
     public void MapRepositorySignatureRoutes(IEndpointRouteBuilder endpoints)
     {
         endpoints.MapGet("v3/repository-signatures/{resourceVersion}/index.json", ServiceIndexEndpoints.RepositorySignaturesAsync)
-            .WithName(Routes.RepositorySignaturesRouteName);
+            .WithName(Routes.RepositorySignaturesRouteName)
+            .RequireFeedPermission(FeedPermissions.Read);
 
         endpoints.MapGet("v3/repository-signatures/certificates/{fingerprint}.crt", ServiceIndexEndpoints.RepositorySigningCertificate)
-            .WithName(Routes.RepositorySigningCertificateRouteName);
+            .WithName(Routes.RepositorySigningCertificateRouteName)
+            .RequireFeedPermission(FeedPermissions.Read);
     }
 
     public void MapServiceIndexRoutes(IEndpointRouteBuilder endpoints)
     {
         endpoints.MapGet("v3/index.json", ServiceIndexEndpoints.ServiceIndexAsync)
-            .WithName(Routes.IndexRouteName);
+            .WithName(Routes.IndexRouteName)
+            .RequireFeedPermission(FeedPermissions.Read);
     }
 
     public void MapPackagePublishRoutes(IEndpointRouteBuilder endpoints)
     {
         endpoints.MapPut("api/v2/package", PackagePublishEndpoints.UploadPackageAsync)
-            .WithName(Routes.UploadPackageRouteName);
+            .WithName(Routes.UploadPackageRouteName)
+            .RequireFeedPermission(FeedPermissions.Push);
 
         endpoints.MapDelete("api/v2/package/{id}/{version}", PackagePublishEndpoints.DeleteAsync)
-            .WithName(Routes.DeleteRouteName);
+            .WithName(Routes.DeleteRouteName)
+            .RequireFeedPermission(permission: null);
 
         endpoints.MapPost("api/v2/package/{id}/{version}", PackagePublishEndpoints.RelistAsync)
-            .WithName(Routes.RelistRouteName);
+            .WithName(Routes.RelistRouteName)
+            .RequireFeedPermission(FeedPermissions.Unlist);
 
         // The publish routes above are part of the V3 protocol despite their path. The
         // NuGet V2 (OData) feed is not supported: tell V2 clients to use the V3 feed.
@@ -91,65 +110,82 @@ public class NuGetFeedEndpointBuilder
     public void MapSymbolRoutes(IEndpointRouteBuilder endpoints)
     {
         endpoints.MapPut("api/v2/symbol", PackagePublishEndpoints.UploadSymbolPackageAsync)
-            .WithName(Routes.UploadSymbolRouteName);
+            .WithName(Routes.UploadSymbolRouteName)
+            .RequireFeedPermission(FeedPermissions.Push);
 
         endpoints.MapGet("api/download/symbols/{file}/{key}/{file2}", PackagePublishEndpoints.DownloadSymbolsAsync)
-            .WithName(Routes.SymbolDownloadRouteName);
+            .WithName(Routes.SymbolDownloadRouteName)
+            .RequireFeedPermission(FeedPermissions.Read);
 
         endpoints.MapGet("api/download/symbols/{prefix}/{file}/{key}/{file2}", PackagePublishEndpoints.DownloadSymbolsAsync)
-            .WithName(Routes.PrefixedSymbolDownloadRouteName);
+            .WithName(Routes.PrefixedSymbolDownloadRouteName)
+            .RequireFeedPermission(FeedPermissions.Read);
     }
 
     public void MapSearchRoutes(IEndpointRouteBuilder endpoints)
     {
         endpoints.MapGet("v3/search", SearchEndpoints.SearchAsync)
-            .WithName(Routes.SearchRouteName);
+            .WithName(Routes.SearchRouteName)
+            .RequireFeedPermission(FeedPermissions.Read);
 
         endpoints.MapGet("v3/autocomplete", SearchEndpoints.AutocompleteAsync)
-            .WithName(Routes.AutocompleteRouteName);
+            .WithName(Routes.AutocompleteRouteName)
+            .RequireFeedPermission(FeedPermissions.Read);
 
         // This is an unofficial API to find packages that depend on a given package.
         endpoints.MapGet("v3/dependents", SearchEndpoints.DependentsAsync)
-            .WithName(Routes.DependentsRouteName);
+            .WithName(Routes.DependentsRouteName)
+            .RequireFeedPermission(FeedPermissions.Read);
     }
 
     public void MapPackageMetadataRoutes(IEndpointRouteBuilder endpoints)
     {
         endpoints.MapGet("v3/registration/{id}/index.json", PackageMetadataEndpoints.RegistrationIndexAsync)
-            .WithName(Routes.RegistrationIndexRouteName);
+            .WithName(Routes.RegistrationIndexRouteName)
+            .RequireFeedPermission(FeedPermissions.Read);
 
         endpoints.MapGet("v3/registration/{id}/{version}.json", PackageMetadataEndpoints.RegistrationLeafAsync)
-            .WithName(Routes.RegistrationLeafRouteName);
+            .WithName(Routes.RegistrationLeafRouteName)
+            .RequireFeedPermission(FeedPermissions.Read);
 
         // RegistrationsBaseUrl/3.6.0 includes SemVer 2.0.0 packages. The other variants must not.
         endpoints.MapGet("v3/registration-semver2/{id}/index.json", PackageMetadataEndpoints.SemVer2RegistrationIndexAsync)
-            .WithName(Routes.RegistrationSemVer2IndexRouteName);
+            .WithName(Routes.RegistrationSemVer2IndexRouteName)
+            .RequireFeedPermission(FeedPermissions.Read);
 
         endpoints.MapGet("v3/registration-semver2/{id}/{version}.json", PackageMetadataEndpoints.SemVer2RegistrationLeafAsync)
-            .WithName(Routes.RegistrationSemVer2LeafRouteName);
+            .WithName(Routes.RegistrationSemVer2LeafRouteName)
+            .RequireFeedPermission(FeedPermissions.Read);
     }
 
     public void MapPackageContentRoutes(IEndpointRouteBuilder endpoints)
     {
         endpoints.MapGet("v3/package/{id}/index.json", PackageContentEndpoints.GetPackageVersionsAsync)
-            .WithName(Routes.PackageVersionsRouteName);
+            .WithName(Routes.PackageVersionsRouteName)
+            .RequireFeedPermission(FeedPermissions.Read);
 
         endpoints.MapGet("v3/package/{id}/{version}/{idVersion}.nupkg", PackageContentEndpoints.DownloadPackageAsync)
-            .WithName(Routes.PackageDownloadRouteName);
+            .WithName(Routes.PackageDownloadRouteName)
+            .RequireFeedPermission(FeedPermissions.Read);
 
         endpoints.MapGet("v3/package/{id}/{version}/{id2}.nuspec", PackageContentEndpoints.DownloadNuspecAsync)
-            .WithName(Routes.PackageDownloadManifestRouteName);
+            .WithName(Routes.PackageDownloadManifestRouteName)
+            .RequireFeedPermission(FeedPermissions.Read);
 
         endpoints.MapGet("v3/package/{id}/{version}/readme", PackageContentEndpoints.DownloadReadmeAsync)
-            .WithName(Routes.PackageDownloadReadmeRouteName);
+            .WithName(Routes.PackageDownloadReadmeRouteName)
+            .RequireFeedPermission(FeedPermissions.Read);
 
         endpoints.MapGet("v3/package/{id}/{version}/icon", PackageContentEndpoints.DownloadIconAsync)
-            .WithName(Routes.PackageDownloadIconRouteName);
+            .WithName(Routes.PackageDownloadIconRouteName)
+            .RequireFeedPermission(FeedPermissions.Read);
 
         endpoints.MapGet("v3/package/{id}/{version}/license.txt", PackageContentEndpoints.DownloadLicenseTextAsync)
-            .WithName(Routes.PackageDownloadLicenseTextRouteName);
+            .WithName(Routes.PackageDownloadLicenseTextRouteName)
+            .RequireFeedPermission(FeedPermissions.Read);
 
         endpoints.MapGet("v3/package/{id}/{version}/license.md", PackageContentEndpoints.DownloadLicenseMarkdownAsync)
-            .WithName(Routes.PackageDownloadLicenseMarkDownRouteName);
+            .WithName(Routes.PackageDownloadLicenseMarkDownRouteName)
+            .RequireFeedPermission(FeedPermissions.Read);
     }
 }

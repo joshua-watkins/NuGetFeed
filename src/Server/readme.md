@@ -12,6 +12,10 @@ The important folders are:
 * Metadata, Content, Search, ServiceIndex - Server implementations of the protocol resources
 * Catalog - The append-only record of package changes, served as the catalog resource
 * Vulnerabilities - Known vulnerabilities, served to NuGet Audit
+* Authentication - API keys and their roles. Each endpoint requires a `FeedPermissions`. The feed is
+  open unless the host adds `AddAuthentication().AddNuGetFeedApiKey()` (a valid key is required) and
+  `AddAuthorizationBuilder().AddNuGetFeedPolicies()` (each key has its role); see `FeedAccessMode` and
+  [the configuration guide](../../docs/configuration.md#require-an-api-key)
 * Signing - Repository signing of pushed packages
 * Entities - The package database (SQLite by default)
 * Storage - Stores the content of packages and symbols on the file system
@@ -40,8 +44,9 @@ because that's the path the V3 `PackagePublish/2.0.0` resource uses.
 
 ## Administration
 
-These endpoints aren't part of the NuGet protocol. Like push and delete, they need the
-`X-NuGet-ApiKey` header when `ApiKey` is set, and are disabled in read-only mode.
+These endpoints aren't part of the NuGet protocol. Once the feed checks API keys and has some,
+they need a valid key (an `Admin` key with roles), in the `X-NuGet-ApiKey` header or as a Basic
+password. They are disabled in read-only mode.
 
 Deprecate a package version (reasons: `Legacy`, `CriticalBugs`, `Other`), or undeprecate it:
 
