@@ -4,10 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
 using NuGet.Versioning;
-using NuGetFeed.Authentication;
-using NuGetFeed.Configuration;
 using NuGetFeed.Indexing;
 using NuGetFeed.Metadata;
 using NuGetFeed.Serialization;
@@ -25,12 +22,9 @@ internal static class PackageDeprecationEndpoints
         string id,
         string version,
         HttpRequest request,
-        IAuthenticationService authentication,
         IPackageDeprecationService deprecations,
-        IOptionsSnapshot<NuGetFeedOptions> options,
         CancellationToken cancellationToken)
     {
-        if (!await EndpointHelpers.IsAuthorizedAsync(request, authentication, options, cancellationToken)) return Results.Unauthorized();
         if (!NuGetVersion.TryParse(version, out var nugetVersion)) return Results.NotFound();
 
         var body = await EndpointHelpers.ReadJsonOrNullAsync(request, AdminJsonContext.Default.DeprecationRequest, cancellationToken);
@@ -80,13 +74,9 @@ internal static class PackageDeprecationEndpoints
     public static async Task<IResult> UndeprecateAsync(
         string id,
         string version,
-        HttpRequest request,
-        IAuthenticationService authentication,
         IPackageDeprecationService deprecations,
-        IOptionsSnapshot<NuGetFeedOptions> options,
         CancellationToken cancellationToken)
     {
-        if (!await EndpointHelpers.IsAuthorizedAsync(request, authentication, options, cancellationToken)) return Results.Unauthorized();
         if (!NuGetVersion.TryParse(version, out var nugetVersion)) return Results.NotFound();
 
         return await deprecations.UndeprecateAsync(id, nugetVersion, cancellationToken)

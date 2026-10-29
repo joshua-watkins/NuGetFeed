@@ -28,18 +28,26 @@ internal sealed class NuGetFeedTestApplication : IDisposable
     private readonly ITestOutputHelper _output;
     private readonly HttpClient? _upstreamClient;
     private readonly IReadOnlyDictionary<string, string?> _configuration;
+    private readonly bool _useAuthentication;
+    private readonly bool _useAuthorization;
     private readonly Lazy<WebApplication> _app;
 
     /// <param name="output">Receives the server's logs.</param>
     /// <param name="upstreamClient">If set, the server mirrors the upstream feed this client reaches.</param>
     /// <param name="configuration">Configuration that overrides the test defaults.</param>
+    /// <param name="useAuthentication">Whether the application adds the feed's API key authentication. Without it, the feed is open.</param>
+    /// <param name="useAuthorization">Whether the application adds the feed's authorization policies, for API key roles.</param>
     public NuGetFeedTestApplication(
         ITestOutputHelper output,
         HttpClient? upstreamClient = null,
-        IReadOnlyDictionary<string, string>? configuration = null)
+        IReadOnlyDictionary<string, string>? configuration = null,
+        bool useAuthentication = false,
+        bool useAuthorization = false)
     {
         _output = output ?? throw new ArgumentNullException(nameof(output));
         _upstreamClient = upstreamClient;
+        _useAuthentication = useAuthentication;
+        _useAuthorization = useAuthorization;
         _configuration = (configuration ?? new Dictionary<string, string>())
             .ToDictionary(setting => setting.Key, setting => (string?)setting.Value);
         _app = new Lazy<WebApplication>(Start);
@@ -122,6 +130,8 @@ internal sealed class NuGetFeedTestApplication : IDisposable
             .Returns(new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc));
 
         builder.Services.AddSingleton(time.Object);
+        if (_useAuthentication) builder.Services.AddAuthentication().AddNuGetFeedApiKey();
+        if (_useAuthorization) builder.Services.AddAuthorizationBuilder().AddNuGetFeedPolicies();
         if (_upstreamClient != null)
         {
             builder.Services.AddSingleton(_upstreamClient);
@@ -133,12 +143,22 @@ internal sealed class NuGetFeedTestApplication : IDisposable
         app.UseRouting();
 
         app.UseCors(ConfigureNuGetFeedOptions.CorsPolicy);
+        app.UseAuthentication();
+        app.UseAuthorization();
         app.UseOperationCancelledMiddleware();
 
         app.MapNuGetFeed();
 
-        app.RunMigrationsAsync().GetAwaiter().GetResult();
-        app.StartAsync().GetAwaiter().GetResult();
+        try
+        {
+            app.RunMigrationsAsync().GetAwaiter().GetResult();
+            app.StartAsync().GetAwaiter().GetResult();
+        }
+        catch
+        {
+            app.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            throw;
+        }
 
         return app;
     }

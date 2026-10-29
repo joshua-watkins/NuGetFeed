@@ -14,6 +14,12 @@ public class NuGetWebsiteOptions
     /// </summary>
     public string? ServiceIndexUrl { get; set; }
 
+    /// <summary>
+    /// The API key the website reads the feed with, if the feed doesn't let anyone read it.
+    /// Use a ReadOnly key: everyone who can open the website sees what the key can read.
+    /// </summary>
+    public string? ApiKey { get; set; }
+
     // things like what frameworks pop up in the search box
 
     // What the base color is?

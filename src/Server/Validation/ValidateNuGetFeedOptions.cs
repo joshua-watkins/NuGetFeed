@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Options;
 using NuGetFeed.Configuration;
@@ -10,6 +11,7 @@ namespace NuGetFeed.Validation;
 public class ValidateNuGetFeedOptions
     : IValidateOptions<DatabaseOptions>
     , IValidateOptions<MirrorOptions>
+    , IValidateOptions<FeedAuthorizationOptions>
 {
     public ValidateOptionsResult Validate(string? name, DatabaseOptions options)
     {
@@ -40,6 +42,31 @@ public class ValidateNuGetFeedOptions
                 nameof(NuGetFeedOptions.Mirror),
                 $"The {nameof(MirrorOptions.PackageSource)} configuration is required if mirroring is enabled"));
         }
+
+        return Result(failures);
+    }
+
+    public ValidateOptionsResult Validate(string? name, FeedAuthorizationOptions options)
+    {
+        var failures = new List<string>();
+        var keys = new HashSet<string>(StringComparer.Ordinal);
+
+        for (var i = 0; i < options.ApiKeys.Count; i++)
+        {
+            var apiKey = options.ApiKeys[i];
+            var field = $"{nameof(FeedAuthorizationOptions.ApiKeys)}:{i}";
+
+            if (string.IsNullOrWhiteSpace(apiKey.Key))
+            {
+                failures.Add(Invalid(nameof(NuGetFeedOptions.Authorization), $"The {field}:{nameof(ApiKeyOptions.Key)} field is required."));
+            }
+            else if (!keys.Add(apiKey.Key))
+            {
+                failures.Add(Invalid(nameof(NuGetFeedOptions.Authorization), $"The {field}:{nameof(ApiKeyOptions.Key)} field is the same as another API key."));
+            }
+        }
+
+        // Whether the settings match the feed's authentication and authorization is checked by ValidateFeedAccess.
 
         return Result(failures);
     }

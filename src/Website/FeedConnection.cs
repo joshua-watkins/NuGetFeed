@@ -39,7 +39,7 @@ public class FeedConnection
         // so resolve them on first use.
         _isCoHosted = string.IsNullOrEmpty(configuredUrl);
         _serviceIndexUrl = new Lazy<string>(() => _isCoHosted ? GetLocalServiceIndexUrl() : configuredUrl!);
-        _clientFactory = new Lazy<NuGetClientFactory>(() => new NuGetClientFactory(CreateHttpClient(), ServiceIndexUrl));
+        _clientFactory = new Lazy<NuGetClientFactory>(() => new NuGetClientFactory(CreateHttpClient(options.Value.ApiKey), ServiceIndexUrl));
     }
 
     /// <summary>
@@ -112,11 +112,18 @@ public class FeedConnection
         return builder.Uri.AbsoluteUri;
     }
 
-    private static HttpClient CreateHttpClient()
+    private static HttpClient CreateHttpClient(string? apiKey)
     {
-        return new HttpClient(new HttpClientHandler
+        var client = new HttpClient(new HttpClientHandler
         {
             AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
         });
+
+        if (!string.IsNullOrEmpty(apiKey))
+        {
+            client.DefaultRequestHeaders.Add("X-NuGet-ApiKey", apiKey);
+        }
+
+        return client;
     }
 }

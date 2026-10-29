@@ -38,6 +38,13 @@ builder.Services.AddNuGetFeed(feed =>
     feed.AddFileStorage();
 });
 
+// The feed is open until API keys are configured. Then each key may do what its role allows.
+if (builder.Configuration.HasNuGetFeedApiKeys())
+{
+    builder.Services.AddAuthentication().AddNuGetFeedApiKey();
+    builder.Services.AddAuthorizationBuilder().AddNuGetFeedPolicies();
+}
+
 builder.Services.AddNuGetFeedUI();
 
 var app = builder.Build();
@@ -56,6 +63,8 @@ app.UseNuGetFeed();
 app.UseRouting();
 
 app.UseCors(ConfigureNuGetFeedOptions.CorsPolicy);
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseOperationCancelledMiddleware();
 
 app.MapNuGetFeed();

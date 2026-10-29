@@ -34,6 +34,7 @@ public static partial class DependencyInjectionExtensions
         var app = new NuGetFeedApplication(services);
 
         services.AddConfiguration();
+        services.AddFeedAuthorization();
         services.AddNuGetFeedServices();
         services.AddDefaultProviders();
 
@@ -74,9 +75,25 @@ public static partial class DependencyInjectionExtensions
             .Configure<IConfiguration>((options, config) => config.GetSection(nameof(NuGetFeedOptions.Search)).Bind(options));
         services.AddOptions<StorageOptions>()
             .Configure<IConfiguration>((options, config) => config.GetSection(nameof(NuGetFeedOptions.Storage)).Bind(options));
+        // Validated when the application starts too, since a mismatch could leave the feed open.
+        services.AddOptions<FeedAuthorizationOptions>()
+            .Configure<IConfiguration>((options, config) => config.GetSection(nameof(NuGetFeedOptions.Authorization)).Bind(options))
+            .ValidateOnStart();
 
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<DatabaseOptions>, ValidateNuGetFeedOptions>());
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<MirrorOptions>, ValidateNuGetFeedOptions>());
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<FeedAuthorizationOptions>, ValidateNuGetFeedOptions>());
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<FeedAuthorizationOptions>, ValidateFeedAccess>());
+    }
+
+    private static void AddFeedAuthorization(this IServiceCollection services)
+    {
+        // The feed is open unless the application adds its API key authentication
+        // (AddNuGetFeedApiKey) and policies (AddNuGetFeedPolicies). The base services are added
+        // so applications can always call UseAuthentication and UseAuthorization.
+        services.TryAddSingleton<FeedAccess>();
+        services.AddAuthentication();
+        services.AddAuthorization();
     }
 
     private static void AddNuGetFeedServices(this IServiceCollection services)
@@ -97,7 +114,6 @@ public static partial class DependencyInjectionExtensions
 
         services.TryAddScoped<DownloadsImporter>();
 
-        services.TryAddTransient<IAuthenticationService, ApiKeyAuthenticationService>();
         services.TryAddTransient<IPackageContentService, DefaultPackageContentService>();
         services.TryAddTransient<IPackageDeletionService, PackageDeletionService>();
         services.TryAddTransient<IPackageIndexingService, PackageIndexingService>();
