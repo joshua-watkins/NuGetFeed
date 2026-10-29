@@ -69,8 +69,9 @@ public class NuGetFeedContext : DbContext
         if (Database.IsSqlite())
         {
             // SQLite creates the database file, but not the folder it lives in.
-            var dataSource = new SqliteConnectionStringBuilder(Database.GetConnectionString()).DataSource;
-            if (!string.IsNullOrEmpty(dataSource) && dataSource != ":memory:")
+            var connectionString = new SqliteConnectionStringBuilder(Database.GetConnectionString());
+            var dataSource = connectionString.DataSource;
+            if (!string.IsNullOrEmpty(dataSource) && dataSource != ":memory:" && connectionString.Mode != SqliteOpenMode.Memory)
             {
                 var directory = Path.GetDirectoryName(Path.GetFullPath(dataSource));
                 if (!string.IsNullOrEmpty(directory))

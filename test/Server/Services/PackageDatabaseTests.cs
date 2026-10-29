@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
@@ -236,19 +235,23 @@ namespace NuGetFeed.Server.Tests.Services
         }
 
         /// <summary>
-        /// Each test gets its own database, made by the migrations, with a listed
+        /// Each test gets its own in-memory database, made by the migrations, with a listed
         /// package "Package" and an unlisted package "Unlisted.Package", both version 1.0.0.
         /// </summary>
         public class FactsBase : IDisposable
         {
-            private readonly string _path = Path.Combine(Path.GetTempPath(), "NuGetFeedTests", Guid.NewGuid().ToString("N") + ".db");
+            private readonly string _connectionString = $"Data Source=PackageDatabaseTests-{Guid.NewGuid():N};Mode=Memory;Cache=Shared";
+
+            // SQLite deletes an in-memory database when its last connection closes.
+            private readonly SqliteConnection _keepAlive;
             private readonly NuGetFeedContext _context;
 
             protected readonly PackageDatabase _target;
 
             public FactsBase()
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
+                _keepAlive = new SqliteConnection(_connectionString);
+                _keepAlive.Open();
 
                 using (var context = CreateContext())
                 {
@@ -269,14 +272,13 @@ namespace NuGetFeed.Server.Tests.Services
             public void Dispose()
             {
                 _context.Dispose();
-                File.Delete(_path);
+                _keepAlive.Dispose();
             }
 
             protected NuGetFeedContext CreateContext()
             {
-                var connectionString = new SqliteConnectionStringBuilder { DataSource = _path, Pooling = false };
                 var options = new DbContextOptionsBuilder<NuGetFeedContext>()
-                    .UseSqlite(connectionString.ToString())
+                    .UseSqlite(_connectionString)
                     .Options;
 
                 return new NuGetFeedContext(options);

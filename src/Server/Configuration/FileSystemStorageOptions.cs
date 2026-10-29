@@ -8,4 +8,10 @@ public class FileSystemStorageOptions
     /// exist at startup. Packages will be stored in a subfolder named "packages".
     /// </summary>
     public string? Path { get; set; }
+
+    /// <summary>
+    /// Store content in a new folder in the system's temporary folder instead of <see cref="Path"/>,
+    /// and delete it when the application stops. For development, with an in-memory database.
+    /// </summary>
+    public bool Temporary { get; set; }
 }

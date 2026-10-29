@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
@@ -16,17 +15,20 @@ namespace NuGetFeed.Server.Tests.Services
 {
     public class CatalogServiceTests : IDisposable
     {
-        private readonly string _path = Path.Combine(Path.GetTempPath(), "NuGetFeedTests", Guid.NewGuid().ToString("N") + ".db");
+        // SQLite deletes an in-memory database when its last connection closes.
+        private readonly SqliteConnection _keepAlive;
         private readonly NuGetFeedContext _context;
         private readonly CatalogService _target;
 
         public CatalogServiceTests()
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
+            var connectionString = $"Data Source=CatalogServiceTests-{Guid.NewGuid():N};Mode=Memory;Cache=Shared";
 
-            var connectionString = new SqliteConnectionStringBuilder { DataSource = _path, Pooling = false };
+            _keepAlive = new SqliteConnection(connectionString);
+            _keepAlive.Open();
+
             var options = new DbContextOptionsBuilder<NuGetFeedContext>()
-                .UseSqlite(connectionString.ToString())
+                .UseSqlite(connectionString)
                 .Options;
 
             _context = new NuGetFeedContext(options);
@@ -43,7 +45,7 @@ namespace NuGetFeed.Server.Tests.Services
         public void Dispose()
         {
             _context.Dispose();
-            File.Delete(_path);
+            _keepAlive.Dispose();
         }
 
         [Fact]

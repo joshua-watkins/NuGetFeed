@@ -1,14 +1,10 @@
 using NuGetFeed.Server.Tests;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
-using NuGetFeed.Entities;
 using NuGetFeed.Extensions;
 using NuGetFeed.Indexing;
 using System;
@@ -50,15 +46,10 @@ internal class NuGetFeedTestApplication : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        // Create temporary storage paths.
-        var tempPath = Path.Combine(
-            Path.GetTempPath(),
-            "NuGetFeedTests",
-            Guid.NewGuid().ToString("N"));
-        var sqlitePath = Path.Combine(tempPath, "NuGetFeed.db");
-        var storagePath = Path.Combine(tempPath, "Packages");
-
-        Directory.CreateDirectory(tempPath);
+        // Each test application gets its own in-memory database, which the server migrates at startup,
+        // and a temporary storage path.
+        var testId = Guid.NewGuid().ToString("N");
+        var storagePath = Path.Combine(Path.GetTempPath(), "NuGetFeedTests", testId, "Packages");
 
         builder
             .UseEnvironment("Production")
@@ -78,7 +69,7 @@ internal class NuGetFeedTestApplication : WebApplicationFactory<Program>
                 config.AddInMemoryCollection(new Dictionary<string, string?>
                 {
                     { "Database:Type", "Sqlite" },
-                    { "Database:ConnectionString", $"Data Source={sqlitePath}" },
+                    { "Database:ConnectionString", $"Data Source=NuGetFeedTests-{testId};Mode=Memory;Cache=Shared" },
                     { "Storage:Type", "FileSystem" },
                     { "Storage:Path", storagePath },
                     { "Search:Type", "Database" },
@@ -101,23 +92,6 @@ internal class NuGetFeedTestApplication : WebApplicationFactory<Program>
                 {
                     services.AddSingleton(_upstreamClient);
                 }
-
-                // Setup the integration test database.
-                var provider = services.BuildServiceProvider();
-                var scopeFactory = provider.GetRequiredService<IServiceScopeFactory>();
-
-                // Ensure the database is created before we run migrations. The migrations
-                // can create the database too, however, migrations check whether the database exists
-                // first. The SQLite provider implements this by attempting to open a connection,
-                // and if that fails, creating the database. This throws several exceptions that
-                // pauses the debugger repeatedly if CLR exceptions are enabled.
-                // See: https://github.com/dotnet/efcore/blob/644d3c8c3a604fd0121d90eaf34f14870e19bcff/src/EFCore.Sqlite.Core/Storage/Internal/SqliteDatabaseCreator.cs#L88-L98
-                using var scope = scopeFactory.CreateScope();
-                var ctx = scope.ServiceProvider.GetRequiredService<NuGetFeedContext>();
-                var dbCreator = ctx.Database.GetService<IRelationalDatabaseCreator>();
-
-                dbCreator.Create();
-                ctx.Database.Migrate();
             });
     }
 }

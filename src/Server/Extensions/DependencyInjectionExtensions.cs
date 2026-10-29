@@ -52,12 +52,18 @@ public static partial class DependencyInjectionExtensions
             .Configure<IConfiguration>((options, config) => config.Bind(options));
         services.AddOptions<DatabaseOptions>()
             .Configure<IConfiguration>((options, config) => config.GetSection(nameof(NuGetFeedOptions.Database)).Bind(options));
+        services.TryAddSingleton<TemporaryStorageFolder>();
         services.AddOptions<FileSystemStorageOptions>()
             .Configure<IConfiguration>((options, config) => config.GetSection(nameof(NuGetFeedOptions.Storage)).Bind(options))
-            .PostConfigure(options =>
+            .PostConfigure<TemporaryStorageFolder>((options, temporaryFolder) =>
             {
+                if (options.Temporary)
+                {
+                    options.Path = temporaryFolder.Path;
+                }
+
                 // Store content in the current working directory by default.
-                if (string.IsNullOrEmpty(options.Path))
+                else if (string.IsNullOrEmpty(options.Path))
                 {
                     options.Path = Directory.GetCurrentDirectory();
                 }
