@@ -6,6 +6,11 @@ using NuGetFeed.Extensions;
 
 // Runs the NuGet feed server and website as a systemd service.
 // When started from a shell instead, it runs as a normal console application.
+if (NuGetFeedCommands.TryWriteHelp(args))
+{
+    return;
+}
+
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
     Args = args,
@@ -42,9 +47,13 @@ if (!app.ValidateStartupOptions())
     return;
 }
 
-app.UseNuGetFeed();
+// Commands like "import downloads" run instead of the server.
+if (await app.TryRunCommandAsync(args))
+{
+    return;
+}
 
-app.UseStaticFiles();
+app.UseNuGetFeed();
 app.UseRouting();
 
 app.UseCors(ConfigureNuGetFeedOptions.CorsPolicy);

@@ -1,8 +1,10 @@
 # NuGetFeed.Server
 
 The backend that implements the [NuGet service APIs](https://docs.microsoft.com/en-us/nuget/api/overview)
-and persists packages. Run it directly as the feed's HTTP server (`dotnet run`, then `http://localhost:3333/v3/index.json`),
-or add it to another host with `services.AddNuGetFeed(...)`, `app.UseNuGetFeed()` and `endpoints.MapNuGetFeed()`.
+and persists packages. It's a library: the Windows and Linux hosts in `pub` run it, with the website,
+by calling `services.AddNuGetFeed(...)`, `app.UseNuGetFeed()` and `endpoints.MapNuGetFeed()`. To run it
+during development, start the Windows host (`pub/Windows`). Hosts can also support the server's command
+line commands, like `import downloads`, with `NuGetFeedCommands`.
 The important folders are:
 
 * Endpoints - The NuGet V3 API endpoints, as minimal APIs

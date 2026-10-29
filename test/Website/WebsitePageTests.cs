@@ -4,12 +4,15 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Moq;
 using NuGet.Versioning;
+using NuGetFeed.Extensions;
 using NuGetFeed.Models;
 using NuGetFeed.PackageDetails;
 using NuGetFeed.Search;
@@ -28,28 +31,39 @@ public class WebsitePageTests : IDisposable
     private readonly Mock<ISearchClient> _search = new();
     private readonly Mock<IPackageDetailsClient> _packages = new();
     private readonly Mock<IServiceIndexClient> _serviceIndex = new();
-    private readonly WebApplicationFactory<Program> _app;
+    private readonly WebApplication _app;
 
     public WebsitePageTests()
     {
-        _app = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
+        // Host the website in memory, the way the Windows and Linux hosts do, without the server.
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
-            builder.UseEnvironment("Production");
-            builder.UseSetting("Website:ServiceIndexUrl", ServiceIndexUrl);
-            builder.ConfigureTestServices(services =>
-            {
-                services.AddSingleton(_search.Object);
-                services.AddSingleton(_packages.Object);
-                services.AddSingleton(_serviceIndex.Object);
-            });
+            EnvironmentName = Environments.Production,
+            ContentRootPath = AppContext.BaseDirectory,
         });
+
+        builder.WebHost.UseTestServer();
+        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            { "Website:ServiceIndexUrl", ServiceIndexUrl },
+        });
+
+        builder.Services.AddNuGetFeedUI();
+        builder.Services.AddSingleton(_search.Object);
+        builder.Services.AddSingleton(_packages.Object);
+        builder.Services.AddSingleton(_serviceIndex.Object);
+
+        _app = builder.Build();
+        _app.UseRouting();
+        _app.MapNuGetFeedUI();
+        _app.StartAsync().GetAwaiter().GetResult();
 
         _search
             .Setup(s => s.SearchAsync(It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new SearchResponse { Data = new List<SearchResult>() });
     }
 
-    public void Dispose() => _app.Dispose();
+    public void Dispose() => _app.DisposeAsync().AsTask().GetAwaiter().GetResult();
 
     [Fact]
     public async Task SearchPageListsPackages()
@@ -94,7 +108,7 @@ public class WebsitePageTests : IDisposable
     [Fact]
     public async Task SearchPageRejectsInvalidPage()
     {
-        using var client = _app.CreateClient();
+        using var client = _app.GetTestClient();
 
         var response = await client.GetAsync("/?p=0");
 
@@ -181,7 +195,7 @@ public class WebsitePageTests : IDisposable
             .Setup(s => s.SearchAsync(It.IsAny<string?>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new HttpRequestException("Connection refused"));
 
-        using var client = _app.CreateClient();
+        using var client = _app.GetTestClient();
         var response = await client.GetAsync("/");
         var html = await response.Content.ReadAsStringAsync();
 
@@ -190,9 +204,49 @@ public class WebsitePageTests : IDisposable
         Assert.Contains($"<code>{ServiceIndexUrl}</code>", html);
     }
 
+    [Theory]
+    [InlineData("/_content/NuGetFeed.Website/css/site.css", "text/css")]
+    [InlineData("/_content/NuGetFeed.Website/lib/bootstrap/dist/js/bootstrap.min.js", "text/javascript")]
+    [InlineData("/_content/NuGetFeed.Website/images/github-32x32.png", "image/png")]
+    public async Task ServesEmbeddedFiles(string url, string contentType)
+    {
+        using var client = _app.GetTestClient();
+
+        var response = await client.GetAsync(url);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(contentType, response.Content.Headers.ContentType?.MediaType);
+        Assert.NotEmpty(await response.Content.ReadAsByteArrayAsync());
+    }
+
+    [Fact]
+    public async Task EmbeddedFilesAreNotModifiedForTheSameETag()
+    {
+        using var client = _app.GetTestClient();
+        var first = await client.GetAsync("/_content/NuGetFeed.Website/css/site.css");
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/_content/NuGetFeed.Website/css/site.css");
+        request.Headers.IfNoneMatch.Add(first.Headers.ETag!);
+        var second = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.NotModified, second.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("/_content/NuGetFeed.Website/css/missing.css")]
+    [InlineData("/_content/NuGetFeed.Website/css")]
+    public async Task MissingEmbeddedFilesAreNotFound(string url)
+    {
+        using var client = _app.GetTestClient();
+
+        var response = await client.GetAsync(url);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
     private async Task<string> GetPageAsync(string url)
     {
-        using var client = _app.CreateClient();
+        using var client = _app.GetTestClient();
         var response = await client.GetAsync(url);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

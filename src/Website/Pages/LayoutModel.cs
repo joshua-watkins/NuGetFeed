@@ -12,7 +12,7 @@ public record LayoutModel(string Title, string PathBase, WebsitePage ActivePage 
     /// <summary>
     /// The URL of one of the website's files, like "images/github-32x32.png".
     /// </summary>
-    public string Content(string path) => $"{PathBase}/_content/NuGetFeed.Website/{path}";
+    public string Content(string path) => $"{PathBase}{WebsiteFiles.RequestPath}/{path}";
 }
 
 /// <summary>

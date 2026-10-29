@@ -56,16 +56,6 @@ namespace NuGetFeed.Server.Tests
         }
 
         [Fact]
-        public void DefaultsToSqlite()
-        {
-            var provider = BuildServiceProvider();
-
-            var context = provider.GetRequiredService<NuGetFeedContext>();
-
-            Assert.True(context.Database.IsSqlite());
-        }
-
-        [Fact]
         public async Task KeepsInMemoryDatabaseBetweenContexts()
         {
             var provider = BuildServiceProvider(new Dictionary<string, string?>
@@ -94,11 +84,14 @@ namespace NuGetFeed.Server.Tests
             }
         }
 
-        [Fact]
-        public void UsesInMemoryDatabaseAndTemporaryStorageInDevelopment()
+        [Theory]
+        [InlineData("Windows")]
+        [InlineData("Linux")]
+        public void HostsUseInMemoryDatabaseAndTemporaryStorageInDevelopment(string host)
         {
+            // The hosts' appsettings files are copied to the test output's Hosts folder.
             var configuration = new ConfigurationBuilder()
-                .SetBasePath(AppContext.BaseDirectory)
+                .SetBasePath(Path.Combine(AppContext.BaseDirectory, "Hosts", host))
                 .AddJsonFile("appsettings.json")
                 .AddJsonFile("appsettings.Development.json")
                 .Build();
@@ -128,10 +121,14 @@ namespace NuGetFeed.Server.Tests
 
         private IServiceProvider BuildServiceProvider(Dictionary<string, string?>? configs = null)
         {
-            // Start from the server's own appsettings.json, which is copied to the test output.
             var configuration = new ConfigurationBuilder()
-                .SetBasePath(AppContext.BaseDirectory)
-                .AddJsonFile("appsettings.json")
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    { DatabaseTypeKey, "Sqlite" },
+                    { ConnectionStringKey, "Data Source=nuget.db" },
+                    { "Storage:Type", "FileSystem" },
+                    { "Search:Type", "Database" },
+                })
                 .AddInMemoryCollection(configs ?? new Dictionary<string, string?>())
                 .Build();
 

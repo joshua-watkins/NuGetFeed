@@ -39,7 +39,7 @@ public static class WebsiteExtensions
     }
 
     /// <summary>
-    /// Maps the NuGet feed website's pages.
+    /// Maps the NuGet feed website's pages and files.
     /// </summary>
     public static IEndpointRouteBuilder MapNuGetFeedUI(this IEndpointRouteBuilder endpoints)
     {
@@ -48,6 +48,7 @@ public static class WebsiteExtensions
         endpoints.MapGet("/", WebsiteEndpoints.IndexAsync);
         endpoints.MapGet("/packages/{id}/{version?}", WebsiteEndpoints.PackageAsync);
         endpoints.MapGet("/upload", WebsiteEndpoints.UploadAsync);
+        endpoints.MapGet(WebsiteFiles.RequestPath + "/{**path}", WebsiteFiles.GetFile);
 
         return endpoints;
     }

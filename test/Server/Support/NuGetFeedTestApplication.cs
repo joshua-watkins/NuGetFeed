@@ -1,8 +1,9 @@
-using NuGetFeed.Server.Tests;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NuGetFeed.Extensions;
@@ -18,11 +19,16 @@ using Xunit.Abstractions;
 
 namespace NuGetFeed.Server.Tests.Support;
 
-internal class NuGetFeedTestApplication : WebApplicationFactory<Program>
+/// <summary>
+/// Hosts the server in memory, the way the Windows and Linux hosts do, without the website.
+/// The application starts the first time it's used.
+/// </summary>
+internal sealed class NuGetFeedTestApplication : IDisposable
 {
     private readonly ITestOutputHelper _output;
     private readonly HttpClient? _upstreamClient;
     private readonly IReadOnlyDictionary<string, string?> _configuration;
+    private readonly Lazy<WebApplication> _app;
 
     /// <param name="output">Receives the server's logs.</param>
     /// <param name="upstreamClient">If set, the server mirrors the upstream feed this client reaches.</param>
@@ -36,74 +42,116 @@ internal class NuGetFeedTestApplication : WebApplicationFactory<Program>
         _upstreamClient = upstreamClient;
         _configuration = (configuration ?? new Dictionary<string, string>())
             .ToDictionary(setting => setting.Key, setting => (string?)setting.Value);
+        _app = new Lazy<WebApplication>(Start);
     }
+
+    public IServiceProvider Services => _app.Value.Services;
+
+    public TestServer Server => _app.Value.GetTestServer();
+
+    public HttpClient CreateClient() => Server.CreateClient();
 
     /// <summary>
     /// Create a client that reaches the server over HTTPS, which some resources require.
     /// </summary>
     public HttpClient CreateHttpsClient()
-        => CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost") });
+    {
+        var client = Server.CreateClient();
+        client.BaseAddress = new Uri("https://localhost");
+        return client;
+    }
 
-    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    public void Dispose()
+    {
+        if (_app.IsValueCreated)
+        {
+            _app.Value.DisposeAsync().AsTask().GetAwaiter().GetResult();
+        }
+    }
+
+    private WebApplication Start()
     {
         // Each test application gets its own in-memory database, which the server migrates at startup,
         // and a temporary storage path.
         var testId = Guid.NewGuid().ToString("N");
         var storagePath = Path.Combine(Path.GetTempPath(), "NuGetFeedTests", testId, "Packages");
 
-        builder
-            .UseEnvironment("Production")
-            .ConfigureLogging(logging =>
-            {
-                // NuGetFeed uses console logging by default. This logger throws operation
-                // cancelled exceptions when the host shuts down, causing the the debugger
-                // to pause repeatedly if CLR exceptions are enabled.
-                logging.ClearProviders();
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+        {
+            EnvironmentName = Environments.Production,
+            ContentRootPath = AppContext.BaseDirectory,
+        });
 
-                // Pipe logs to the xunit output.
-                logging.AddProvider(new XunitLoggerProvider(_output));
-            })
-            .ConfigureAppConfiguration(config =>
-            {
-                // Setup the integration test configuration.
-                config.AddInMemoryCollection(new Dictionary<string, string?>
-                {
-                    { "Database:Type", "Sqlite" },
-                    { "Database:ConnectionString", $"Data Source=NuGetFeedTests-{testId};Mode=Memory;Cache=Shared" },
-                    { "Storage:Type", "FileSystem" },
-                    { "Storage:Path", storagePath },
-                    { "Search:Type", "Database" },
-                    { "Mirror:Enabled", _upstreamClient != null ? "true": "false" },
-                    { "Mirror:PackageSource", "http://localhost/v3/index.json" },
-                });
+        builder.WebHost.UseTestServer();
 
-                config.AddInMemoryCollection(_configuration);
-            })
-            .ConfigureServices((context, services) =>
-            {
-                // Make time deterministic for testing purposes.
-                var time = new Mock<SystemTime>();
-                time
-                    .Setup(t => t.UtcNow)
-                    .Returns(new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+        // NuGetFeed uses console logging by default. This logger throws operation
+        // cancelled exceptions when the host shuts down, causing the the debugger
+        // to pause repeatedly if CLR exceptions are enabled.
+        builder.Logging.ClearProviders();
 
-                services.AddSingleton(time.Object);
-                if (_upstreamClient != null)
-                {
-                    services.AddSingleton(_upstreamClient);
-                }
-            });
+        // Pipe logs to the xunit output.
+        builder.Logging.AddProvider(new XunitLoggerProvider(_output));
+
+        // Setup the integration test configuration.
+        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            { "ApiKey", "" },
+            { "PackageDeletionBehavior", "HardDelete" },
+            { "AllowPackageOverwrites", "true" },
+            { "Database:Type", "Sqlite" },
+            { "Database:ConnectionString", $"Data Source=NuGetFeedTests-{testId};Mode=Memory;Cache=Shared" },
+            { "Storage:Type", "FileSystem" },
+            { "Storage:Path", storagePath },
+            { "Search:Type", "Database" },
+            { "Mirror:Enabled", _upstreamClient != null ? "true": "false" },
+            { "Mirror:PackageSource", "http://localhost/v3/index.json" },
+        });
+
+        builder.Configuration.AddInMemoryCollection(_configuration);
+
+        builder.Services.AddNuGetFeed(feed =>
+        {
+            feed.AddSqliteDatabase();
+            feed.AddFileStorage();
+        });
+
+        // Make time deterministic for testing purposes.
+        var time = new Mock<SystemTime>();
+        time
+            .Setup(t => t.UtcNow)
+            .Returns(new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+
+        builder.Services.AddSingleton(time.Object);
+        if (_upstreamClient != null)
+        {
+            builder.Services.AddSingleton(_upstreamClient);
+        }
+
+        var app = builder.Build();
+
+        app.UseNuGetFeed();
+        app.UseRouting();
+
+        app.UseCors(ConfigureNuGetFeedOptions.CorsPolicy);
+        app.UseOperationCancelledMiddleware();
+
+        app.MapNuGetFeed();
+
+        app.RunMigrationsAsync().GetAwaiter().GetResult();
+        app.StartAsync().GetAwaiter().GetResult();
+
+        return app;
     }
 }
 
 internal static class NuGetFeedTestApplicationExtensions
 {
     public static async Task AddPackageAsync(
-        this WebApplicationFactory<Program> factory,
+        this NuGetFeedTestApplication app,
         Stream package,
         CancellationToken cancellationToken = default)
     {
-        var scopeFactory = factory.Services.GetRequiredService<IServiceScopeFactory>();
+        var scopeFactory = app.Services.GetRequiredService<IServiceScopeFactory>();
 
         using var scope = scopeFactory.CreateScope();
         var indexer = scope.ServiceProvider.GetRequiredService<IPackageIndexingService>();
@@ -116,11 +164,11 @@ internal static class NuGetFeedTestApplicationExtensions
     }
 
     public static async Task AddSymbolPackageAsync(
-        this WebApplicationFactory<Program> factory,
+        this NuGetFeedTestApplication app,
         Stream symbolPackage,
         CancellationToken cancellationToken = default)
     {
-        var scopeFactory = factory.Services.GetRequiredService<IServiceScopeFactory>();
+        var scopeFactory = app.Services.GetRequiredService<IServiceScopeFactory>();
 
         using var scope = scopeFactory.CreateScope();
         var indexer = scope.ServiceProvider.GetRequiredService<ISymbolIndexingService>();

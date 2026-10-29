@@ -32,7 +32,7 @@ namespace NuGetFeed.Server.Tests
         public NuGetClientIntegrationTests(ITestOutputHelper output)
         {
             _app = new NuGetFeedTestApplication(output);
-            _client = _app.CreateDefaultClient();
+            _client = _app.CreateClient();
             _packageStream = TestResources.GetResourceStream(TestResources.Package);
 
             var sourceUri = new Uri(_app.Server.BaseAddress, "v3/index.json");

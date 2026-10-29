@@ -1,13 +1,12 @@
 {
-  "$schema": "http://json.schemastore.org/launchsettings.json",
   "profiles": {
-    "NuGetFeed.Website": {
+    "Website": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "http://localhost:3334/"
+      "applicationUrl": "https://localhost:63482;http://localhost:63483"
     }
   }
 }

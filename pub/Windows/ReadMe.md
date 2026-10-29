@@ -3,6 +3,12 @@
 The NuGetFeed server and website, built to run as a Windows Service.
 Run from a console, it behaves like a normal console application.
 
+## Development
+
+Start this project (F5 in Visual Studio, or `dotnet run --project pub/Windows`) to run the server
+and the website together, at <https://localhost:5001> and <http://localhost:5000>. In Development it uses an in-memory database and
+a temporary package folder, so it starts empty each time.
+
 ## Building for Windows
 
 ```powershell
