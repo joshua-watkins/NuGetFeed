@@ -1,5 +1,47 @@
-﻿/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
+/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
 for details on configuring this project to bundle and minify static web assets. */
+
+/* Colors. The website follows the system's light or dark setting.
+-------------------------------------------------- */
+:root {
+    color-scheme: light dark;
+
+    /* The green navigation bar and command boxes look the same in both themes. */
+    --brand: #008048;
+    --brand-dark: #004d2b;
+    --brand-darker: #004024;
+
+    --background: #fff;
+    --text: #333;
+    --text-strong: #000;
+    --text-muted: #666;
+    --link: #008048;
+    --link-hover: #004d2b;
+    --rule: #d8d8d8;
+    --tab: #eaeaea;
+    --warning: #fff4ce;
+    --warning-text: #000;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --background: #141917;
+        --text: #dfe5e2;
+        --text-strong: #f2f5f3;
+        --text-muted: #9aa6a0;
+        --link: #3dbf85;
+        --link-hover: #7fdcb0;
+        --rule: #333c37;
+        --tab: #27302b;
+        --warning: #3d3214;
+        --warning-text: #f5e6b8;
+
+        /* Bootstrap's components, which only come in light colors. */
+        --surface: #1d2420;
+        --surface-hover: #27302b;
+        --border: #3b4540;
+    }
+}
 
 /* Layout
 -------------------------------------------------- */
@@ -8,18 +50,20 @@ body {
     padding: 0;
     font-family: 'Segoe UI', "Helvetica Neue", Helvetica, Arial, sans-serif;
     font-size: 16px;
-    accent-color: #008048;
+    color: var(--text);
+    background-color: var(--background);
+    accent-color: var(--brand);
 }
 
 /* Theme: green in place of nuget.org's (and Bootstrap's) blue
 -------------------------------------------------- */
 a {
-    color: #008048;
+    color: var(--link);
 }
 
 a:hover,
 a:focus {
-    color: #004d2b;
+    color: var(--link-hover);
 }
 
 .form-control:focus {
@@ -78,9 +122,9 @@ h4 {
 }
 
 .alert-warning {
-    color: #000;
-    background-color: #fff4ce;
-    border-color: #fff4ce;
+    color: var(--warning-text);
+    background-color: var(--warning);
+    border-color: var(--warning);
 }
 
 /* Navigation
@@ -90,8 +134,8 @@ h4 {
 }
 
 .navbar-inverse {
-    background-color: #008048;
-    border-color: #004d2b;
+    background-color: var(--brand);
+    border-color: var(--brand-dark);
 }
 
 .navbar {
@@ -172,14 +216,14 @@ h4 {
     display: inline;
     margin: 0;
     padding: 0;
-    color: #008048;
+    color: var(--link);
 }
 
 .link-button:hover,
 .link-button:focus {
     outline: none;
     text-decoration: underline;
-    color: #004d2b;
+    color: var(--link-hover);
 }
 
 /* Index page
@@ -226,7 +270,7 @@ h4 {
     margin-bottom: 8px;
     margin-left: -5px;
     line-height: 20px;
-    color: #666;
+    color: var(--text-muted);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -243,7 +287,7 @@ h4 {
 .search-result .info li + li {
     padding-left: 10px;
     margin-left: 10px;
-    border-color: #dbdbdb;
+    border-color: var(--rule);
     border-width: 1px;
     border-left-style: solid;
 }
@@ -288,8 +332,8 @@ h4 {
 .tabbed-info li a {
     padding: 5px 10px;
     margin: 0;
-    color: #000;
-    background-color: #eaeaea;
+    color: var(--text-strong);
+    background-color: var(--tab);
     border: 0;
     position: relative;
     display: block;
@@ -300,7 +344,7 @@ h4 {
     font-weight: 600;
     color: #fff;
     text-decoration: underline;
-    background-color: #004024;
+    background-color: var(--brand-darker);
 }
 
 .tabbed-info .content {
@@ -316,8 +360,8 @@ h4 {
     font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
     line-height: 1.5;
     color: #fff;
-    background-color: #004024;
-    border-color: #004024;
+    background-color: var(--brand-darker);
+    border-color: var(--brand-darker);
     border-style: solid;
     border-width: 1px 0 1px 1px;
 }
@@ -395,7 +439,7 @@ h4 {
 }
 
 .display-package .expandable-section h2 button {
-    color: #000;
+    color: var(--text-strong);
     text-decoration: none;
 }
 
@@ -411,11 +455,11 @@ h4 {
 }
 
 .display-package .package-used-by thead tr {
-  border-bottom: 2px solid #d3d3d3;
+  border-bottom: 2px solid var(--rule);
 }
 
 .display-package .package-used-by tbody tr {
-  border-bottom: 1px solid #d3d3d3;
+  border-bottom: 1px solid var(--rule);
 }
 
 .display-package .package-used-by td div {
@@ -431,16 +475,120 @@ h4 {
 }
 
 .dependency-groups h4 > span {
-    border-bottom: 1px solid #d8d8d8;
+    border-bottom: 1px solid var(--rule);
     margin-bottom: 3px;
 }
 
 .dependency-group li span {
-    color: #666;
+    color: var(--text-muted);
 }
 
 .display-package .version-list .ms-Icon {
     position: relative;
     top: 2px;
     margin-right: 5px;
+}
+
+/* Dark theme for Bootstrap's components
+-------------------------------------------------- */
+@media (prefers-color-scheme: dark) {
+    hr {
+        border-top-color: var(--rule);
+    }
+
+    .text-muted,
+    h1 small,
+    .dropdown-header {
+        color: var(--text-muted);
+    }
+
+    .form-control,
+    .btn-default:where(:not(.btn-warning)),
+    .dropdown-menu,
+    .pager li > a,
+    .pager li > span {
+        color: var(--text);
+        background-color: var(--surface);
+        border-color: var(--border);
+    }
+
+    .form-control::placeholder {
+        color: var(--text-muted);
+    }
+
+    .btn-default:where(:not(.btn-warning)):hover,
+    .btn-default:where(:not(.btn-warning)):focus,
+    .btn-default:where(:not(.btn-warning)):active,
+    .btn-default:where(:not(.btn-warning)).active,
+    .open > .dropdown-toggle.btn-default,
+    .pager li > a:hover,
+    .pager li > a:focus {
+        color: var(--text-strong);
+        background-color: var(--surface-hover);
+        border-color: var(--border);
+    }
+
+    .pager .disabled > a,
+    .pager .disabled > a:hover,
+    .pager .disabled > span {
+        color: var(--text-muted);
+        background-color: var(--surface);
+    }
+
+    .dropdown-menu > li > a {
+        color: var(--text);
+    }
+
+    .dropdown-menu > li > a:hover,
+    .dropdown-menu > li > a:focus {
+        color: var(--text-strong);
+        background-color: var(--surface-hover);
+    }
+
+    .dropdown-menu .divider {
+        background-color: var(--border);
+    }
+
+    .table > thead > tr > th,
+    .table > tbody > tr > td,
+    .table > tbody > tr > th {
+        border-color: var(--rule);
+    }
+
+    /* Highlights the version being viewed in the package's version list. */
+    .bg-info {
+        background-color: #1d3a2c;
+    }
+
+    .alert-danger {
+        color: #f1b0b0;
+        background-color: #3d1f1f;
+        border-color: #5c2b2b;
+    }
+
+    /* Code in package readmes and the website's own pages. */
+    code {
+        color: #f08cab;
+        background-color: var(--surface);
+    }
+
+    pre {
+        color: var(--text);
+        background-color: var(--surface);
+        border-color: var(--border);
+    }
+
+    pre code {
+        color: inherit;
+        background-color: transparent;
+    }
+
+    blockquote {
+        border-left-color: var(--border);
+    }
+
+    /* The GitHub logo is black. */
+    .package-details-info img[src$="github-32x32.png"] {
+        filter: invert(1);
+    }
 }
