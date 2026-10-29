@@ -23,28 +23,28 @@ public class FileStorageService : IStorageService
         if (options == null) throw new ArgumentNullException(nameof(options));
 
         // Resolve relative path components ('.'/'..') and ensure there is a trailing slash.
-        _storePath = Path.GetFullPath(options.Value.Path);
+        _storePath = Path.GetFullPath(options.Value.Path ?? Directory.GetCurrentDirectory());
         if (!_storePath.EndsWith(Path.DirectorySeparatorChar.ToString()))
             _storePath += Path.DirectorySeparatorChar;
     }
 
-    public Task<Stream> GetAsync(string path, CancellationToken cancellationToken = default)
+    public Task<Stream?> GetAsync(string path, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         path = GetFullPath(path);
         var content = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read);
 
-        return Task.FromResult<Stream>(content);
+        return Task.FromResult<Stream?>(content);
     }
 
-    public Task<Uri> GetDownloadUriAsync(string path, CancellationToken cancellationToken = default)
+    public Task<Uri?> GetDownloadUriAsync(string path, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = new Uri(GetFullPath(path));
 
-        return Task.FromResult(result);
+        return Task.FromResult<Uri?>(result);
     }
 
     public async Task<StoragePutResult> PutAsync(
@@ -61,7 +61,7 @@ public class FileStorageService : IStorageService
         path = GetFullPath(path);
 
         // Ensure that the path exists.
-        Directory.CreateDirectory(Path.GetDirectoryName(path));
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
 
         try
         {

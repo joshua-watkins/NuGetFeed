@@ -12,7 +12,7 @@ public class NuGetWebsiteOptions
     /// It then calls the server on this application's own listening address and rewrites
     /// the feed's links to the address the browser used.
     /// </summary>
-    public string ServiceIndexUrl { get; set; }
+    public string? ServiceIndexUrl { get; set; }
 
     // things like what frameworks pop up in the search box
 

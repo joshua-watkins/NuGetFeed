@@ -11,9 +11,9 @@ namespace NuGetFeed;
 
 public class PackageDatabase : IPackageDatabase
 {
-    private readonly IContext _context;
+    private readonly NuGetFeedContext _context;
 
-    public PackageDatabase(IContext context)
+    public PackageDatabase(NuGetFeedContext context)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
     }
@@ -68,7 +68,7 @@ public class PackageDatabase : IPackageDatabase
         return (await query.ToListAsync(cancellationToken)).AsReadOnly();
     }
 
-    public Task<Package> FindOrNullAsync(
+    public Task<Package?> FindOrNullAsync(
         string id,
         NuGetVersion version,
         bool includeUnlisted,

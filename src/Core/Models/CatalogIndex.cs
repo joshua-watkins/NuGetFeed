@@ -18,7 +18,7 @@ public class CatalogIndex
     /// A unique ID associated with the most recent commit.
     /// </summary>
     [JsonPropertyName("commitId")]
-    public string CommitId { get; set; }
+    public string CommitId { get; set; } = null!;
 
     /// <summary>
     /// A timestamp of the most recent commit.
@@ -36,5 +36,5 @@ public class CatalogIndex
     /// The items used to discover <see cref="CatalogPage"/>s.
     /// </summary>
     [JsonPropertyName("items")]
-    public List<CatalogPageItem> Items { get; set; }
+    public List<CatalogPageItem> Items { get; set; } = null!;
 }

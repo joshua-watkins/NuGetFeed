@@ -47,22 +47,22 @@ public class NuGetFeedClientIntegrationTests : IDisposable
         Assert.Equal("3.0.0", index.Version);
         Assert.Equal(17, index.Resources.Count);
 
-        Assert.NotEmpty(index.GetResourceUrl(new[] { "PackageBaseAddress/3.0.0" }));
-        Assert.NotEmpty(index.GetResourceUrl(new[] { "PackagePublish/2.0.0" }));
-        Assert.NotEmpty(index.GetResourceUrl(new[] { "RegistrationsBaseUrl" }));
-        Assert.NotEmpty(index.GetResourceUrl(new[] { "SearchAutocompleteService" }));
-        Assert.NotEmpty(index.GetResourceUrl(new[] { "SearchQueryService" }));
-        Assert.NotEmpty(index.GetResourceUrl(new[] { "SymbolPackagePublish/4.9.0" }));
-        Assert.NotEmpty(index.GetPackagePublishResourceUrl());
-        Assert.NotEmpty(index.GetReadmeUriTemplate());
-        Assert.NotEmpty(index.GetPackageDependentsResourceUrl());
+        Assert.NotEmpty(index.GetResourceUrl(new[] { "PackageBaseAddress/3.0.0" })!);
+        Assert.NotEmpty(index.GetResourceUrl(new[] { "PackagePublish/2.0.0" })!);
+        Assert.NotEmpty(index.GetResourceUrl(new[] { "RegistrationsBaseUrl" })!);
+        Assert.NotEmpty(index.GetResourceUrl(new[] { "SearchAutocompleteService" })!);
+        Assert.NotEmpty(index.GetResourceUrl(new[] { "SearchQueryService" })!);
+        Assert.NotEmpty(index.GetResourceUrl(new[] { "SymbolPackagePublish/4.9.0" })!);
+        Assert.NotEmpty(index.GetPackagePublishResourceUrl()!);
+        Assert.NotEmpty(index.GetReadmeUriTemplate()!);
+        Assert.NotEmpty(index.GetPackageDependentsResourceUrl()!);
     }
 
     [Theory]
     [InlineData(null, 1)]
     [InlineData("Dependency", 1)]
     [InlineData("DotnetTool", 0)]
-    public async Task SearchFiltersByPackageType(string packageType, int expectedResults)
+    public async Task SearchFiltersByPackageType(string? packageType, int expectedResults)
     {
         await _app.AddPackageAsync(_packageStream);
 
@@ -85,7 +85,7 @@ public class NuGetFeedClientIntegrationTests : IDisposable
         Assert.Equal("TestData", package.PackageId);
         Assert.Equal("1.2.3", package.Version);
         Assert.Equal(0, package.Downloads);
-        Assert.Contains("Dependency", package.PackageTypes);
+        Assert.Contains("Dependency", package.PackageTypes!);
         Assert.True(package.Listed);
     }
 
@@ -127,7 +127,7 @@ public class NuGetFeedClientIntegrationTests : IDisposable
         var results = await _client.SearchAsync();
 
         var result = Assert.Single(results);
-        var author = Assert.Single(result.Authors);
+        var author = Assert.Single(result.Authors!);
         var version = Assert.Single(result.Versions);
 
         Assert.Equal("TestData", result.PackageId);

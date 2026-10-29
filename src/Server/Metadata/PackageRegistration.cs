@@ -23,8 +23,8 @@ public class PackageRegistration
         string packageId,
         IReadOnlyList<Package> packages,
         bool semVer2 = false,
-        IReadOnlyDictionary<string, string> catalogLeafUrls = null,
-        IReadOnlyList<VulnerabilityAdvisory> vulnerabilities = null)
+        IReadOnlyDictionary<string, string>? catalogLeafUrls = null,
+        IReadOnlyList<VulnerabilityAdvisory>? vulnerabilities = null)
     {
         PackageId = packageId ?? throw new ArgumentNullException(nameof(packageId));
         Packages = packages ?? throw new ArgumentNullException(nameof(packages));
@@ -55,6 +55,6 @@ public class PackageRegistration
 
     public IReadOnlyList<VulnerabilityAdvisory> Vulnerabilities { get; }
 
-    public string GetCatalogLeafUrlOrNull(Package package)
+    public string? GetCatalogLeafUrlOrNull(Package package)
         => CatalogLeafUrls.TryGetValue(package.Version.ToFullString().ToLowerInvariant(), out var url) ? url : null;
 }

@@ -13,32 +13,32 @@ namespace NuGetFeed.Catalog;
 /// </summary>
 public class CatalogPackageSnapshot
 {
-    public string Authors { get; set; }
-    public string Description { get; set; }
-    public string IconUrl { get; set; }
+    public string? Authors { get; set; }
+    public string? Description { get; set; }
+    public string? IconUrl { get; set; }
     public bool HasEmbeddedIcon { get; set; }
     public bool IsPrerelease { get; set; }
-    public string Language { get; set; }
-    public string LicenseUrl { get; set; }
+    public string? Language { get; set; }
+    public string? LicenseUrl { get; set; }
     public bool HasEmbeddedLicense { get; set; }
     public bool LicenseIsMarkDown { get; set; }
-    public string LicenseExpression { get; set; }
+    public string? LicenseExpression { get; set; }
     public bool Listed { get; set; }
-    public string MinClientVersion { get; set; }
-    public string PackageHash { get; set; }
+    public string? MinClientVersion { get; set; }
+    public string? PackageHash { get; set; }
     public long PackageSize { get; set; }
-    public string ProjectUrl { get; set; }
+    public string? ProjectUrl { get; set; }
     public DateTime Published { get; set; }
-    public string ReleaseNotes { get; set; }
+    public string? ReleaseNotes { get; set; }
     public bool RequireLicenseAcceptance { get; set; }
-    public string Summary { get; set; }
-    public List<string> Tags { get; set; }
-    public string Title { get; set; }
-    public string VerbatimVersion { get; set; }
-    public List<DependencyGroupItem> DependencyGroups { get; set; }
-    public List<CatalogPackageType> PackageTypes { get; set; }
-    public PackageDeprecation Deprecation { get; set; }
-    public List<PackageVulnerability> Vulnerabilities { get; set; }
+    public string? Summary { get; set; }
+    public List<string>? Tags { get; set; }
+    public string? Title { get; set; }
+    public string? VerbatimVersion { get; set; }
+    public List<DependencyGroupItem>? DependencyGroups { get; set; }
+    public List<CatalogPackageType>? PackageTypes { get; set; }
+    public PackageDeprecation? Deprecation { get; set; }
+    public List<PackageVulnerability>? Vulnerabilities { get; set; }
 
     public static CatalogPackageSnapshot Create(Package package, IEnumerable<VulnerabilityAdvisory> advisories)
     {
@@ -67,10 +67,11 @@ public class CatalogPackageSnapshot
             Title = NullIfEmpty(package.Title),
             VerbatimVersion = package.OriginalVersionString,
             DependencyGroups = package.ToDependencyGroups().ToList(),
-            PackageTypes = package.PackageTypes?
+            PackageTypes = package.PackageTypes
+                .Where(t => t.Name != null)
                 .Select(t => new CatalogPackageType
                 {
-                    Name = t.Name,
+                    Name = t.Name!,
 
                     // Package types without an explicit version are stored as version 0.0.
                     Version = string.IsNullOrEmpty(t.Version) || t.Version == "0.0" ? null : t.Version,
@@ -81,5 +82,5 @@ public class CatalogPackageSnapshot
         };
     }
 
-    private static string NullIfEmpty(string value) => string.IsNullOrEmpty(value) ? null : value;
+    private static string? NullIfEmpty(string? value) => string.IsNullOrEmpty(value) ? null : value;
 }

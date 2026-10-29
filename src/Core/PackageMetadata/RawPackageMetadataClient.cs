@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NuGetFeed.Extensions;
 using NuGetFeed.Models;
+using NuGetFeed.Serialization;
 
 namespace NuGetFeed.PackageMetadata;
 
@@ -27,13 +28,13 @@ public class RawPackageMetadataClient : IPackageMetadataClient
     }
 
     /// <inheritdoc />
-    public async Task<RegistrationIndexResponse> GetRegistrationIndexOrNullAsync(
+    public async Task<RegistrationIndexResponse?> GetRegistrationIndexOrNullAsync(
         string packageId,
         CancellationToken cancellationToken = default)
     {
         var url = $"{_packageMetadataUrl}/{packageId.ToLowerInvariant()}/index.json";
 
-        return await _httpClient.GetFromJsonOrDefaultAsync<RegistrationIndexResponse>(url, cancellationToken);
+        return await _httpClient.GetFromJsonOrDefaultAsync(url, NuGetJsonContext.Default.RegistrationIndexResponse, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -41,7 +42,7 @@ public class RawPackageMetadataClient : IPackageMetadataClient
         string pageUrl,
         CancellationToken cancellationToken = default)
     {
-        return await _httpClient.GetFromJsonAsync<RegistrationPageResponse>(pageUrl, cancellationToken);
+        return await _httpClient.GetFromJsonAsync(pageUrl, NuGetJsonContext.Default.RegistrationPageResponse, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -49,6 +50,6 @@ public class RawPackageMetadataClient : IPackageMetadataClient
         string leafUrl,
         CancellationToken cancellationToken = default)
     {
-        return await _httpClient.GetFromJsonAsync<RegistrationLeafResponse>(leafUrl, cancellationToken);
+        return await _httpClient.GetFromJsonAsync(leafUrl, NuGetJsonContext.Default.RegistrationLeafResponse, cancellationToken);
     }
 }

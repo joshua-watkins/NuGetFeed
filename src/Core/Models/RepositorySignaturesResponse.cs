@@ -22,7 +22,7 @@ public class RepositorySignaturesResponse
     /// The certificates the source uses to sign packages.
     /// </summary>
     [JsonPropertyName("signingCertificates")]
-    public IReadOnlyList<RepositorySigningCertificate> SigningCertificates { get; set; }
+    public IReadOnlyList<RepositorySigningCertificate> SigningCertificates { get; set; } = null!;
 }
 
 /// <summary>
@@ -39,19 +39,19 @@ public class RepositorySigningCertificate
     /// The absolute URL to the DER-encoded public certificate.
     /// </summary>
     [JsonPropertyName("contentUrl")]
-    public string ContentUrl { get; set; }
+    public string ContentUrl { get; set; } = null!;
 
     /// <summary>
     /// The certificate's fingerprints, keyed by hash algorithm OID. Values are lowercase hex.
     /// </summary>
     [JsonPropertyName("fingerprints")]
-    public IReadOnlyDictionary<string, string> Fingerprints { get; set; }
+    public IReadOnlyDictionary<string, string> Fingerprints { get; set; } = null!;
 
     [JsonPropertyName("subject")]
-    public string Subject { get; set; }
+    public string? Subject { get; set; }
 
     [JsonPropertyName("issuer")]
-    public string Issuer { get; set; }
+    public string? Issuer { get; set; }
 
     [JsonPropertyName("notBefore")]
     public DateTimeOffset NotBefore { get; set; }

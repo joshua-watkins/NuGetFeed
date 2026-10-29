@@ -17,21 +17,21 @@ public class NuGetFeedRegistrationIndexPage
 {
 #region Original properties from RegistrationIndexPage.
     [JsonPropertyName("@id")]
-    public string RegistrationPageUrl { get; set; }
+    public string RegistrationPageUrl { get; set; } = null!;
 
     [JsonPropertyName("count")]
     public int Count { get; set; }
 
     [JsonPropertyName("lower")]
-    public string Lower { get; set; }
+    public string Lower { get; set; } = null!;
 
     [JsonPropertyName("upper")]
-    public string Upper { get; set; }
+    public string Upper { get; set; } = null!;
 #endregion
 
     /// <summary>
     /// This was modified to use NuGetFeed's extended registration index page item model.
     /// </summary>
     [JsonPropertyName("items")]
-    public IReadOnlyList<NuGetFeedRegistrationIndexPageItem> ItemsOrNull { get; set; }
+    public IReadOnlyList<NuGetFeedRegistrationIndexPageItem>? ItemsOrNull { get; set; }
 }

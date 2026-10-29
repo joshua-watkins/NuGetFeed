@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using NuGet.Versioning;
 using NuGetFeed.Extensions;
 using NuGetFeed.Models;
+using NuGetFeed.Serialization;
 
 namespace NuGetFeed.PackageDetails;
 
@@ -18,8 +19,8 @@ public class RawPackageDetailsClient : IPackageDetailsClient
 {
     private readonly HttpClient _httpClient;
     private readonly string _packageMetadataUrl;
-    private readonly string _readmeUriTemplate;
-    private readonly string _dependentsUrl;
+    private readonly string? _readmeUriTemplate;
+    private readonly string? _dependentsUrl;
 
     /// <summary>
     /// Create a new Package Details client.
@@ -31,8 +32,8 @@ public class RawPackageDetailsClient : IPackageDetailsClient
     public RawPackageDetailsClient(
         HttpClient httpClient,
         string registrationBaseUrl,
-        string readmeUriTemplate = null,
-        string dependentsUrl = null)
+        string? readmeUriTemplate = null,
+        string? dependentsUrl = null)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _packageMetadataUrl = registrationBaseUrl ?? throw new ArgumentNullException(nameof(registrationBaseUrl));
@@ -48,7 +49,10 @@ public class RawPackageDetailsClient : IPackageDetailsClient
         var result = new List<NuGetFeedPackageMetadata>();
 
         var url = $"{_packageMetadataUrl}/{packageId.ToLowerInvariant()}/index.json";
-        var registrationIndex = await _httpClient.GetFromJsonOrDefaultAsync<NuGetFeedRegistrationIndexResponse>(url, cancellationToken);
+        var registrationIndex = await _httpClient.GetFromJsonOrDefaultAsync(
+            url,
+            NuGetJsonContext.Default.NuGetFeedRegistrationIndexResponse,
+            cancellationToken);
 
         if (registrationIndex?.Pages == null)
         {
@@ -63,12 +67,13 @@ public class RawPackageDetailsClient : IPackageDetailsClient
             var items = page.ItemsOrNull;
             if (items == null)
             {
-                var externalPage = await _httpClient.GetFromJsonAsync<NuGetFeedRegistrationIndexPage>(
+                var externalPage = await _httpClient.GetFromJsonAsync(
                     page.RegistrationPageUrl,
+                    NuGetJsonContext.Default.NuGetFeedRegistrationIndexPage,
                     cancellationToken);
 
                 // Skip malformed external pages.
-                if (externalPage?.ItemsOrNull == null) continue;
+                if (externalPage.ItemsOrNull == null) continue;
 
                 items = externalPage.ItemsOrNull;
             }
@@ -86,7 +91,7 @@ public class RawPackageDetailsClient : IPackageDetailsClient
     }
 
     /// <inheritdoc />
-    public async Task<Stream> GetPackageReadmeStreamOrNullAsync(
+    public async Task<Stream?> GetPackageReadmeStreamOrNullAsync(
         string packageId,
         NuGetVersion packageVersion,
         CancellationToken cancellationToken = default)
@@ -111,7 +116,7 @@ public class RawPackageDetailsClient : IPackageDetailsClient
 
         response.EnsureSuccessStatusCode();
 
-        return await response.Content.ReadAsStreamAsync();
+        return await response.Content.ReadAsStreamAsync(cancellationToken);
     }
 
     /// <inheritdoc />
@@ -119,13 +124,13 @@ public class RawPackageDetailsClient : IPackageDetailsClient
         string packageId,
         CancellationToken cancellationToken = default)
     {
-        DependentsResponse response = null;
+        DependentsResponse? response = null;
 
         if (_dependentsUrl != null)
         {
             var url = $"{_dependentsUrl}?packageId={Uri.EscapeDataString(packageId)}";
 
-            response = await _httpClient.GetFromJsonOrDefaultAsync<DependentsResponse>(url, cancellationToken);
+            response = await _httpClient.GetFromJsonOrDefaultAsync(url, NuGetJsonContext.Default.DependentsResponse, cancellationToken);
         }
 
         return new DependentsResponse

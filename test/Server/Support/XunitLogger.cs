@@ -17,10 +17,10 @@ namespace NuGetFeed.Server.Tests
             _category = category ?? throw new ArgumentNullException(nameof(category));
         }
 
-        public IDisposable BeginScope<TState>(TState state) => NullScope.Instance;
+        public IDisposable BeginScope<TState>(TState state) where TState : notnull => NullScope.Instance;
         public bool IsEnabled(LogLevel logLevel) => true;
 
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
             _output.WriteLine($"{_category} [{eventId}] {formatter(state, exception)}");
 

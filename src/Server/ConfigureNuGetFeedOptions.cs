@@ -81,7 +81,7 @@ public class ConfigureNuGetFeedOptions
         options.MaxRequestBodySize = 262144000;
     }
 
-    public ValidateOptionsResult Validate(string name, NuGetFeedOptions options)
+    public ValidateOptionsResult Validate(string? name, NuGetFeedOptions options)
     {
         var failures = new List<string>();
 
@@ -90,21 +90,21 @@ public class ConfigureNuGetFeedOptions
         if (options.Search == null) failures.Add($"The '{nameof(NuGetFeedOptions.Search)}' config is required");
         if (options.Storage == null) failures.Add($"The '{nameof(NuGetFeedOptions.Storage)}' config is required");
 
-        if (!ValidDatabaseTypes.Contains(options.Database?.Type))
+        if (!ValidDatabaseTypes.Contains(options.Database?.Type ?? string.Empty))
         {
             failures.Add(
                 $"The '{nameof(NuGetFeedOptions.Database)}:{nameof(DatabaseOptions.Type)}' config is invalid. " +
                 $"Allowed values: {string.Join(", ", ValidDatabaseTypes)}");
         }
 
-        if (!ValidStorageTypes.Contains(options.Storage?.Type))
+        if (!ValidStorageTypes.Contains(options.Storage?.Type ?? string.Empty))
         {
             failures.Add(
                 $"The '{nameof(NuGetFeedOptions.Storage)}:{nameof(StorageOptions.Type)}' config is invalid. " +
                 $"Allowed values: {string.Join(", ", ValidStorageTypes)}");
         }
 
-        if (!ValidSearchTypes.Contains(options.Search?.Type))
+        if (!ValidSearchTypes.Contains(options.Search?.Type ?? string.Empty))
         {
             failures.Add(
                 $"The '{nameof(NuGetFeedOptions.Search)}:{nameof(SearchOptions.Type)}' config is invalid. " +

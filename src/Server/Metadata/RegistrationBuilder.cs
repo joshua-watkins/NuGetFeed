@@ -43,7 +43,7 @@ public class RegistrationBuilder
         };
     }
 
-    public virtual RegistrationLeafResponse BuildLeaf(Package package, bool semVer2 = false, string catalogLeafUrl = null)
+    public virtual RegistrationLeafResponse BuildLeaf(Package package, bool semVer2 = false, string? catalogLeafUrl = null)
     {
         var id = package.Id;
         var version = package.Version;
@@ -70,7 +70,7 @@ public class RegistrationBuilder
                 CatalogLeafUrl = registration.GetCatalogLeafUrlOrNull(package),
                 PackageId = package.Id,
                 Version = package.Version.ToFullString(),
-                Authors = string.Join(", ", package.Authors),
+                Authors = string.Join(", ", package.Authors ?? Array.Empty<string>()),
                 Description = package.Description,
                 Deprecation = package.ToDeprecationOrNull(),
                 Downloads = package.Downloads,
@@ -88,7 +88,7 @@ public class RegistrationBuilder
                 ReadmeUrl = package.HasReadme ? _url.GetPackageReadmeDownloadUrl(package.Id, package.Version) : null,
                 ReleaseNotes = package.ReleaseNotes,
                 PackageContentUrl = _url.GetPackageDownloadUrl(package.Id, package.Version),
-                PackageTypes = package.PackageTypes.Select(t => t.Name).ToList(),
+                PackageTypes = package.PackageTypes.Select(t => t.Name).OfType<string>().ToList(),
                 ProjectUrl = package.ProjectUrlString,
                 RepositoryUrl = package.RepositoryUrlString,
                 RepositoryType = package.RepositoryType,

@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +11,7 @@ using NuGet.Versioning;
 using NuGetFeed.Entities;
 using NuGetFeed.Extensions;
 using NuGetFeed.Models;
+using NuGetFeed.Serialization;
 using NuGetFeed.Storage;
 
 namespace NuGetFeed.Catalog;
@@ -28,22 +29,17 @@ public class CatalogService : ICatalogService
     private static readonly IReadOnlyList<string> PackageDetailsLeafType = new[] { CatalogEntry.PackageDetailsType, "catalog:Permalink" };
     private static readonly IReadOnlyList<string> PackageDeleteLeafType = new[] { CatalogEntry.PackageDeleteType, "catalog:Permalink" };
 
-    private static readonly JsonSerializerOptions SnapshotJsonOptions = new()
-    {
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-    };
-
     // Commits must have strictly increasing timestamps. Serialize them within this process.
     private static readonly SemaphoreSlim CommitLock = new(1, 1);
 
-    private readonly IContext _context;
+    private readonly NuGetFeedContext _context;
     private readonly IUrlGenerator _url;
     private readonly IPackageStorageService _storage;
     private readonly SystemTime _time;
     private readonly ILogger<CatalogService> _logger;
 
     public CatalogService(
-        IContext context,
+        NuGetFeedContext context,
         IUrlGenerator url,
         IPackageStorageService storage,
         SystemTime time,
@@ -71,7 +67,9 @@ public class CatalogService : ICatalogService
                 Type = CatalogEntry.PackageDetailsType,
                 PackageId = package.Id,
                 PackageVersion = package.Version.ToFullString(),
-                Content = JsonSerializer.Serialize(CatalogPackageSnapshot.Create(package, advisories), SnapshotJsonOptions),
+                Content = JsonSerializer.Serialize(
+                    CatalogPackageSnapshot.Create(package, advisories),
+                    ServerJsonContext.Default.CatalogPackageSnapshot),
             })
             .ToList();
 
@@ -122,7 +120,7 @@ public class CatalogService : ICatalogService
         };
     }
 
-    public async Task<CatalogPage> GetPageOrNullAsync(int page, CancellationToken cancellationToken)
+    public async Task<CatalogPage?> GetPageOrNullAsync(int page, CancellationToken cancellationToken)
     {
         if (page < 0) return null;
 
@@ -155,7 +153,7 @@ public class CatalogService : ICatalogService
         };
     }
 
-    public async Task<CatalogLeaf> GetLeafOrNullAsync(int key, CancellationToken cancellationToken)
+    public async Task<CatalogLeaf?> GetLeafOrNullAsync(int key, CancellationToken cancellationToken)
     {
         var entry = await _context.CatalogEntries.SingleOrDefaultAsync(e => e.Key == key, cancellationToken);
         if (entry == null) return null;
@@ -178,7 +176,8 @@ public class CatalogService : ICatalogService
             };
         }
 
-        var snapshot = JsonSerializer.Deserialize<CatalogPackageSnapshot>(entry.Content, SnapshotJsonOptions);
+        var snapshot = JsonSerializer.Deserialize(entry.Content ?? "{}", ServerJsonContext.Default.CatalogPackageSnapshot)
+            ?? new CatalogPackageSnapshot();
         var version = NuGetVersion.Parse(entry.PackageVersion);
 
         return new PackageDetailsCatalogLeaf
@@ -235,7 +234,7 @@ public class CatalogService : ICatalogService
                 group => group.Key,
                 group =>
                 {
-                    var latest = group.MaxBy(e => e.Key);
+                    var latest = group.MaxBy(e => e.Key)!;
                     return _url.GetCatalogLeafUrl(latest.Key, latest.PackageId, latest.PackageVersion);
                 });
     }
@@ -259,7 +258,8 @@ public class CatalogService : ICatalogService
         {
             try
             {
-                using var packageStream = await _storage.GetPackageStreamAsync(package.Id, package.Version, cancellationToken);
+                using var packageStream = await _storage.GetPackageStreamAsync(package.Id, package.Version, cancellationToken)
+                    ?? throw new FileNotFoundException("The package isn't in storage.");
 
                 (package.PackageHash, package.PackageSize) = await packageStream.ComputeSha512Async(cancellationToken);
             }

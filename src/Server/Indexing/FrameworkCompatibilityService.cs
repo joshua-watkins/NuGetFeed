@@ -30,7 +30,7 @@ public class FrameworkCompatibilityService : IFrameworkCompatibilityService
             .GetFields()
             .Where(f => f.IsStatic)
             .Where(f => f.FieldType == typeof(NuGetFramework))
-            .Select(f => (NuGetFramework)f.GetValue(null))
+            .Select(f => (NuGetFramework)f.GetValue(null)!)
             .Where(f => supportedFrameworks.Contains(f.Framework))
             .ToDictionary(f => f.GetShortFolderName());
 

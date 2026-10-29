@@ -3,14 +3,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace NuGetFeed.Entities.Converters;
 
-public class UriToStringConverter : ValueConverter<Uri, string>
+// Entity Framework doesn't convert nulls, so the conversions only see values.
+public class UriToStringConverter : ValueConverter<Uri?, string?>
 {
     public static readonly UriToStringConverter Instance = new UriToStringConverter();
 
     public UriToStringConverter()
         : base(
-            v => v.AbsoluteUri,
-            v => new Uri(v))
+            v => v!.AbsoluteUri,
+            v => new Uri(v!))
     {
     }
 }

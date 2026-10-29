@@ -13,7 +13,8 @@ namespace NuGetFeed.Server.Tests
     {
         public static TestableHttpSource Create(SourceRepository source, HttpClient client)
         {
-            Func<Task<HttpHandlerResource>> factory = () => source.GetResourceAsync<HttpHandlerResource>();
+            Func<Task<HttpHandlerResource>> factory = async () => await source.GetResourceAsync<HttpHandlerResource>()
+                ?? throw new InvalidOperationException("The source doesn't have an HTTP handler.");
 
             var httpCacheDirectory = Path.Combine(
                 Path.GetTempPath(),

@@ -14,12 +14,12 @@ public interface IRepositorySigningService
     /// <summary>
     /// The signing certificate, or null if repository signing is off.
     /// </summary>
-    X509Certificate2 Certificate { get; }
+    X509Certificate2? Certificate { get; }
 
     /// <summary>
     /// The certificate's lowercase hex SHA-256 fingerprint, or null if repository signing is off.
     /// </summary>
-    string CertificateFingerprint { get; }
+    string? CertificateFingerprint { get; }
 
     /// <summary>
     /// Repository sign a package, if signing is on and the package doesn't already have a repository signature.
@@ -31,7 +31,7 @@ public interface IRepositorySigningService
 
 /// <param name="SignedPackage">The signed package, or null if the package wasn't changed. The caller disposes it.</param>
 /// <param name="IsRepositorySigned">Whether the package now carries this server's repository signature.</param>
-public sealed record RepositorySigningResult(Stream SignedPackage, bool IsRepositorySigned)
+public sealed record RepositorySigningResult(Stream? SignedPackage, bool IsRepositorySigned)
 {
     public static readonly RepositorySigningResult Unsigned = new(null, false);
 }

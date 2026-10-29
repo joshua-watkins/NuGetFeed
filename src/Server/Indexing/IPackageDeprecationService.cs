@@ -22,9 +22,9 @@ public interface IPackageDeprecationService
         string id,
         NuGetVersion version,
         IReadOnlyList<string> reasons,
-        string message,
-        string alternatePackageId,
-        string alternatePackageVersionRange,
+        string? message,
+        string? alternatePackageId,
+        string? alternatePackageVersionRange,
         CancellationToken cancellationToken);
 
     /// <returns>False if the package doesn't exist.</returns>

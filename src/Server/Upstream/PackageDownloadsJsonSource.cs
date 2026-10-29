@@ -69,7 +69,7 @@ public class PackageDownloadsJsonSource : IPackageDownloadsSource
             return true;
         }
 
-        var id = string.Intern(record[0].GetString().ToLowerInvariant());
+        var id = string.Intern(record[0].GetString()!.ToLowerInvariant());
         if (!results.TryGetValue(id, out var versions))
         {
             versions = new Dictionary<string, long>();

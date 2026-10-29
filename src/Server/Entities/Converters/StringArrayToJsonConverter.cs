@@ -4,7 +4,8 @@ using NuGetFeed.Serialization;
 
 namespace NuGetFeed.Entities.Converters;
 
-public class StringArrayToJsonConverter : ValueConverter<string[], string>
+// Entity Framework doesn't convert nulls, so the conversions only see values.
+public class StringArrayToJsonConverter : ValueConverter<string[]?, string?>
 {
     public static readonly StringArrayToJsonConverter Instance = new StringArrayToJsonConverter();
 

@@ -40,9 +40,9 @@ public class TestDataHttpMessageHandler : HttpMessageHandler
 
     private HttpResponseMessage Send(HttpRequestMessage request)
     {
-        Func<string> getContent;
         if (request.Method != HttpMethod.Get
-            || !UrlToGetContent.TryGetValue(request.RequestUri.AbsoluteUri, out getContent))
+            || request.RequestUri == null
+            || !UrlToGetContent.TryGetValue(request.RequestUri.AbsoluteUri, out var getContent))
         {
             return new HttpResponseMessage
             {

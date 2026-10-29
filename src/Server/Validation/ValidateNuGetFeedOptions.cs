@@ -1,49 +1,51 @@
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using Microsoft.Extensions.Options;
+using NuGetFeed.Configuration;
 
 namespace NuGetFeed.Validation;
 
 /// <summary>
-/// A configuration that validates options using data annotations.
+/// Validates the options NuGetFeed reads from its configuration.
 /// </summary>
-/// <typeparam name="TOptions">The type of options to validate.</typeparam>
-public class ValidateNuGetFeedOptions<TOptions> : IValidateOptions<TOptions> where TOptions : class
+public class ValidateNuGetFeedOptions
+    : IValidateOptions<DatabaseOptions>
+    , IValidateOptions<MirrorOptions>
 {
-    private readonly string _optionsName;
-
-    /// <summary>
-    /// Create a new validator.
-    /// </summary>
-    /// <param name="optionsName">
-    /// The option's key in the configuration or appsettings.json file,
-    /// or null if the options was created from the root configuration.
-    /// </param>
-    public ValidateNuGetFeedOptions(string optionsName)
+    public ValidateOptionsResult Validate(string? name, DatabaseOptions options)
     {
-        _optionsName = optionsName;
-    }
+        var failures = new List<string>();
 
-    public ValidateOptionsResult Validate(string name, TOptions options)
-    {
-        // See: https://github.com/dotnet/runtime/blob/e3ffd343ad5bd3a999cb9515f59e6e7a777b2c34/src/libraries/Microsoft.Extensions.Options.DataAnnotations/src/DataAnnotationValidateOptions.cs
-        var context = new ValidationContext(options);
-        var validationResults = new List<ValidationResult>();
-        if (Validator.TryValidateObject(options, context, validationResults, validateAllProperties: true))
+        if (string.IsNullOrWhiteSpace(options.ConnectionString))
         {
-            return ValidateOptionsResult.Success;
+            failures.Add(Invalid(nameof(NuGetFeedOptions.Database), $"The {nameof(DatabaseOptions.ConnectionString)} field is required."));
         }
 
-        var errors = new List<string>();
-        var message = _optionsName == null
-            ? $"Invalid configs"
-            : $"Invalid '{_optionsName}' configs";
+        return Result(failures);
+    }
 
-        foreach (var result in validationResults)
+    public ValidateOptionsResult Validate(string? name, MirrorOptions options)
+    {
+        var failures = new List<string>();
+
+        if (options.PackageDownloadTimeoutSeconds < 0)
         {
-            errors.Add($"{message}: {result}");
+            failures.Add(Invalid(
+                nameof(NuGetFeedOptions.Mirror),
+                $"The field {nameof(MirrorOptions.PackageDownloadTimeoutSeconds)} must be between 0 and {int.MaxValue}."));
         }
 
-        return ValidateOptionsResult.Fail(errors);
+        if (options.Enabled && options.PackageSource == null)
+        {
+            failures.Add(Invalid(
+                nameof(NuGetFeedOptions.Mirror),
+                $"The {nameof(MirrorOptions.PackageSource)} configuration is required if mirroring is enabled"));
+        }
+
+        return Result(failures);
     }
+
+    private static string Invalid(string section, string message) => $"Invalid '{section}' configs: {message}";
+
+    private static ValidateOptionsResult Result(List<string> failures)
+        => failures.Count == 0 ? ValidateOptionsResult.Success : ValidateOptionsResult.Fail(failures);
 }

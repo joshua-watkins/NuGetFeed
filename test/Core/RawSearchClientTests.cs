@@ -24,10 +24,10 @@ public class RawSearchClientTests : IClassFixture<ProtocolFixture>
 
         var result = Assert.Single(response.Data);
         Assert.Equal("Test.Package", result.PackageId);
-        Assert.Equal("Package Authors", Assert.Single(result.Authors));
+        Assert.Equal("Package Authors", Assert.Single(result.Authors!));
         Assert.Equal(TestData.RegistrationIndexInlinedItemsUrl, result.RegistrationIndexUrl);
 
-        var packageType = Assert.Single(result.PackageTypes);
+        var packageType = Assert.Single(result.PackageTypes!);
         Assert.Equal("Dependency", packageType.Name);
     }
 

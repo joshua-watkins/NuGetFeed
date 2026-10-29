@@ -17,16 +17,16 @@ public class FeedConnection
 {
     private const string DefaultServiceIndexPath = "v3/index.json";
 
-    private readonly IServer _server;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IServer? _server;
+    private readonly IHttpContextAccessor? _httpContextAccessor;
     private readonly bool _isCoHosted;
     private readonly Lazy<string> _serviceIndexUrl;
     private readonly Lazy<NuGetClientFactory> _clientFactory;
 
     public FeedConnection(
         IOptions<NuGetWebsiteOptions> options,
-        IServer server,
-        IHttpContextAccessor httpContextAccessor)
+        IServer? server,
+        IHttpContextAccessor? httpContextAccessor)
     {
         if (options == null) throw new ArgumentNullException(nameof(options));
 
@@ -38,7 +38,7 @@ public class FeedConnection
         // The server's listening addresses are only known once the application has started,
         // so resolve them on first use.
         _isCoHosted = string.IsNullOrEmpty(configuredUrl);
-        _serviceIndexUrl = new Lazy<string>(() => _isCoHosted ? GetLocalServiceIndexUrl() : configuredUrl);
+        _serviceIndexUrl = new Lazy<string>(() => _isCoHosted ? GetLocalServiceIndexUrl() : configuredUrl!);
         _clientFactory = new Lazy<NuGetClientFactory>(() => new NuGetClientFactory(CreateHttpClient(), ServiceIndexUrl));
     }
 
@@ -57,7 +57,7 @@ public class FeedConnection
     /// </summary>
     /// <param name="url">A URL returned by the feed.</param>
     /// <returns>The URL to show in the page, or null if <paramref name="url"/> is empty.</returns>
-    public string ToPublicUrl(string url)
+    public string? ToPublicUrl(string? url)
     {
         if (string.IsNullOrEmpty(url)) return null;
 

@@ -16,13 +16,13 @@ public class CatalogLeafItem : ICatalogLeafItem
     /// The URL to the current catalog leaf.
     /// </summary>
     [JsonPropertyName("@id")]
-    public string CatalogLeafUrl { get; set; }
+    public string CatalogLeafUrl { get; set; } = null!;
 
     /// <summary>
     /// The type of the current catalog leaf.
     /// </summary>
     [JsonPropertyName("@type")]
-    public string Type { get; set; }
+    public string Type { get; set; } = null!;
 
     /// <summary>
     /// The commit timestamp of this catalog item.
@@ -34,17 +34,17 @@ public class CatalogLeafItem : ICatalogLeafItem
     /// The commit ID associated with this catalog item.
     /// </summary>
     [JsonPropertyName("commitId")]
-    public string CommitId { get; set; }
+    public string CommitId { get; set; } = null!;
 
     /// <summary>
     /// The package ID of the catalog item.
     /// </summary>
     [JsonPropertyName("nuget:id")]
-    public string PackageId { get; set; }
+    public string PackageId { get; set; } = null!;
 
     /// <summary>
     /// The package version of the catalog item.
     /// </summary>
     [JsonPropertyName("nuget:version")]
-    public string PackageVersion { get; set; }
+    public string PackageVersion { get; set; } = null!;
 }

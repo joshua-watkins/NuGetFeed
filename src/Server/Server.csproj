@@ -2,17 +2,19 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
 
 	  <AssemblyName>$(SolutionName).$(MSBuildProjectName)</AssemblyName>
 	  <RootNamespace>$(SolutionName)</RootNamespace>
 	  <IsAotCompatible>true</IsAotCompatible>
 	  <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
+	  <!-- Generates the minimal API endpoints' request handling at compile time instead of with reflection. -->
+	  <EnableRequestDelegateGenerator>true</EnableRequestDelegateGenerator>
 	  <!-- The Windows installer (pub/Setup) publishes the Windows service, which references this project, for win-x64. -->
 	  <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="5.1.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.14">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

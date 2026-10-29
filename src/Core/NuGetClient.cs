@@ -32,6 +32,10 @@ public class NuGetClient
     /// </summary>
     protected NuGetClient()
     {
+        _contentClient = null!;
+        _metadataClient = null!;
+        _searchClient = null!;
+        _autocompleteClient = null!;
     }
 
     /// <summary>
@@ -316,7 +320,7 @@ public class NuGetClient
     /// <param name="cancellationToken">A token to cancel the task.</param>
     /// <returns>The search results, including prerelease packages.</returns>
     public virtual async Task<IReadOnlyList<SearchResult>> SearchAsync(
-        string query = null,
+        string? query = null,
         CancellationToken cancellationToken = default)
     {
         var response = await _searchClient.SearchAsync(query, cancellationToken: cancellationToken);
@@ -335,7 +339,7 @@ public class NuGetClient
     /// <param name="cancellationToken">A token to cancel the task.</param>
     /// <returns>The search results, including prerelease packages.</returns>
     public virtual async Task<IReadOnlyList<SearchResult>> SearchAsync(
-        string query,
+        string? query,
         int skip,
         int take,
         CancellationToken cancellationToken = default)
@@ -361,7 +365,7 @@ public class NuGetClient
     /// <param name="cancellationToken">A token to cancel the task.</param>
     /// <returns>The search results.</returns>
     public virtual async Task<IReadOnlyList<SearchResult>> SearchAsync(
-        string query,
+        string? query,
         bool includePrerelease,
         CancellationToken cancellationToken = default)
     {
@@ -385,7 +389,7 @@ public class NuGetClient
     /// <param name="cancellationToken">A token to cancel the task.</param>
     /// <returns>The search results, including prerelease packages.</returns>
     public virtual async Task<IReadOnlyList<SearchResult>> SearchAsync(
-        string query,
+        string? query,
         int skip,
         int take,
         bool includePrerelease,
@@ -411,7 +415,7 @@ public class NuGetClient
     /// <param name="cancellationToken">A token to cancel the task.</param>
     /// <returns>The package IDs that matched the query.</returns>
     public virtual async Task<IReadOnlyList<string>> AutocompleteAsync(
-        string query = null,
+        string? query = null,
         CancellationToken cancellationToken = default)
     {
         var response = await _autocompleteClient.AutocompleteAsync(query, cancellationToken: cancellationToken);
@@ -430,7 +434,7 @@ public class NuGetClient
     /// <param name="cancellationToken">A token to cancel the task.</param>
     /// <returns>The package IDs that matched the query.</returns>
     public virtual async Task<IReadOnlyList<string>> AutocompleteAsync(
-        string query,
+        string? query,
         int skip,
         int take,
         CancellationToken cancellationToken = default)
@@ -456,7 +460,7 @@ public class NuGetClient
     /// <param name="cancellationToken">A token to cancel the task.</param>
     /// <returns>The package IDs that matched the query.</returns>
     public virtual async Task<IReadOnlyList<string>> AutocompleteAsync(
-        string query,
+        string? query,
         bool includePrerelease,
         CancellationToken cancellationToken = default)
     {
@@ -480,7 +484,7 @@ public class NuGetClient
     /// <param name="cancellationToken">A token to cancel the task.</param>
     /// <returns>The package IDs that matched the query.</returns>
     public virtual async Task<IReadOnlyList<string>> AutocompleteAsync(
-        string query,
+        string? query,
         int skip,
         int take,
         bool includePrerelease,

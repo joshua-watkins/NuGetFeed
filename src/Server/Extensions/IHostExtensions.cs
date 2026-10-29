@@ -67,10 +67,10 @@ public static class IHostExtensions
         {
             using (var scope = host.Services.CreateScope())
             {
-                var ctx = scope.ServiceProvider.GetService<IContext>();
-                if (ctx != null && ctx is not NullContext)
+                var context = scope.ServiceProvider.GetService<NuGetFeedContext>();
+                if (context != null)
                 {
-                    await ctx.RunMigrationsAsync(cancellationToken);
+                    await context.RunMigrationsAsync(cancellationToken);
 
                     // Packages indexed before the catalog existed are added to it once.
                     var catalog = scope.ServiceProvider.GetService<ICatalogService>();

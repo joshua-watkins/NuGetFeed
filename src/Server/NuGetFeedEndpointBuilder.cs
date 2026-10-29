@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.AspNetCore.Routing.Constraints;
+using NuGetFeed.Endpoints;
 
 namespace NuGetFeed;
 
@@ -22,197 +22,134 @@ public class NuGetFeedEndpointBuilder
 
     public void MapCatalogRoutes(IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapControllerRoute(
-            name: Routes.CatalogIndexRouteName,
-            pattern: "v3/catalog/index.json",
-            defaults: new { controller = "Catalog", action = "Index" });
+        endpoints.MapGet("v3/catalog/index.json", CatalogEndpoints.IndexAsync)
+            .WithName(Routes.CatalogIndexRouteName);
 
-        endpoints.MapControllerRoute(
-            name: Routes.CatalogPageRouteName,
-            pattern: "v3/catalog/page{page:int}.json",
-            defaults: new { controller = "Catalog", action = "Page" });
+        endpoints.MapGet("v3/catalog/page{page:int}.json", CatalogEndpoints.PageAsync)
+            .WithName(Routes.CatalogPageRouteName);
 
-        endpoints.MapControllerRoute(
-            name: Routes.CatalogLeafRouteName,
-            pattern: "v3/catalog/data/{key:int}/{name}",
-            defaults: new { controller = "Catalog", action = "Leaf" });
+        endpoints.MapGet("v3/catalog/data/{key:int}/{name}", CatalogEndpoints.LeafAsync)
+            .WithName(Routes.CatalogLeafRouteName);
     }
 
     public void MapDeprecationRoutes(IEndpointRouteBuilder endpoints)
     {
         // Not part of the NuGet protocol: lets administrators deprecate packages.
-        endpoints.MapControllerRoute(
-            name: Routes.DeprecationRouteName,
-            pattern: "api/package/{id}/{version}/deprecation",
-            defaults: new { controller = "PackageDeprecation", action = "Deprecation" });
+        endpoints.MapPut("api/package/{id}/{version}/deprecation", PackageDeprecationEndpoints.DeprecateAsync)
+            .WithName(Routes.DeprecationRouteName);
+
+        endpoints.MapDelete("api/package/{id}/{version}/deprecation", PackageDeprecationEndpoints.UndeprecateAsync);
     }
 
     public void MapVulnerabilityRoutes(IEndpointRouteBuilder endpoints)
     {
         // Not part of the NuGet protocol: lets administrators manage known vulnerabilities.
-        endpoints.MapControllerRoute(
-            name: Routes.VulnerabilitiesRouteName,
-            pattern: "api/vulnerabilities",
-            defaults: new { controller = "Vulnerability", action = "Advisories" });
+        endpoints.MapPut("api/vulnerabilities", VulnerabilityEndpoints.UpsertAsync)
+            .WithName(Routes.VulnerabilitiesRouteName);
 
-        endpoints.MapControllerRoute(
-            name: Routes.VulnerabilityIndexRouteName,
-            pattern: "v3/vulnerabilities/index.json",
-            defaults: new { controller = "Vulnerability", action = "Index" });
+        endpoints.MapDelete("api/vulnerabilities", VulnerabilityEndpoints.DeleteAsync);
 
-        endpoints.MapControllerRoute(
-            name: Routes.VulnerabilityFileRouteName,
-            pattern: "v3/vulnerabilities/{name}.json",
-            defaults: new { controller = "Vulnerability", action = "VulnerabilityFile" });
+        endpoints.MapGet("v3/vulnerabilities/index.json", VulnerabilityEndpoints.IndexAsync)
+            .WithName(Routes.VulnerabilityIndexRouteName);
+
+        endpoints.MapGet("v3/vulnerabilities/{name}.json", VulnerabilityEndpoints.VulnerabilityFileAsync)
+            .WithName(Routes.VulnerabilityFileRouteName);
     }
 
     public void MapRepositorySignatureRoutes(IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapControllerRoute(
-            name: Routes.RepositorySignaturesRouteName,
-            pattern: "v3/repository-signatures/{resourceVersion}/index.json",
-            defaults: new { controller = "RepositorySignatures", action = "Index" });
+        endpoints.MapGet("v3/repository-signatures/{resourceVersion}/index.json", ServiceIndexEndpoints.RepositorySignaturesAsync)
+            .WithName(Routes.RepositorySignaturesRouteName);
 
-        endpoints.MapControllerRoute(
-            name: Routes.RepositorySigningCertificateRouteName,
-            pattern: "v3/repository-signatures/certificates/{fingerprint}.crt",
-            defaults: new { controller = "RepositorySignatures", action = "Certificate" });
+        endpoints.MapGet("v3/repository-signatures/certificates/{fingerprint}.crt", ServiceIndexEndpoints.RepositorySigningCertificate)
+            .WithName(Routes.RepositorySigningCertificateRouteName);
     }
 
     public void MapServiceIndexRoutes(IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapControllerRoute(
-            name: Routes.IndexRouteName,
-            pattern: "v3/index.json",
-            defaults: new { controller = "ServiceIndex", action = "Get" });
+        endpoints.MapGet("v3/index.json", ServiceIndexEndpoints.ServiceIndexAsync)
+            .WithName(Routes.IndexRouteName);
     }
 
     public void MapPackagePublishRoutes(IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapControllerRoute(
-            name: Routes.UploadPackageRouteName,
-            pattern: "api/v2/package",
-            defaults: new { controller = "PackagePublish", action = "Upload" },
-            constraints: new { httpMethod = new HttpMethodRouteConstraint("PUT") });
+        endpoints.MapPut("api/v2/package", PackagePublishEndpoints.UploadPackageAsync)
+            .WithName(Routes.UploadPackageRouteName);
 
-        endpoints.MapControllerRoute(
-            name: Routes.DeleteRouteName,
-            pattern: "api/v2/package/{id}/{version}",
-            defaults: new { controller = "PackagePublish", action = "Delete" },
-            constraints: new { httpMethod = new HttpMethodRouteConstraint("DELETE") });
+        endpoints.MapDelete("api/v2/package/{id}/{version}", PackagePublishEndpoints.DeleteAsync)
+            .WithName(Routes.DeleteRouteName);
 
-        endpoints.MapControllerRoute(
-            name: Routes.RelistRouteName,
-            pattern: "api/v2/package/{id}/{version}",
-            defaults: new { controller = "PackagePublish", action = "Relist" },
-            constraints: new { httpMethod = new HttpMethodRouteConstraint("POST") });
+        endpoints.MapPost("api/v2/package/{id}/{version}", PackagePublishEndpoints.RelistAsync)
+            .WithName(Routes.RelistRouteName);
 
         // The publish routes above are part of the V3 protocol despite their path. The
         // NuGet V2 (OData) feed is not supported: tell V2 clients to use the V3 feed.
-        endpoints.MapControllerRoute(
-            name: Routes.V2FeedRouteName,
-            pattern: "api/v2/{**path}",
-            defaults: new { controller = "V2Feed", action = "NotSupported" },
-            constraints: new { httpMethod = new HttpMethodRouteConstraint("GET", "HEAD") });
+        endpoints.MapMethods("api/v2/{**path}", new[] { "GET", "HEAD" }, ServiceIndexEndpoints.V2FeedNotSupported)
+            .WithName(Routes.V2FeedRouteName);
     }
 
     public void MapSymbolRoutes(IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapControllerRoute(
-            name: Routes.UploadSymbolRouteName,
-            pattern: "api/v2/symbol",
-            defaults: new { controller = "Symbol", action = "Upload" },
-            constraints: new { httpMethod = new HttpMethodRouteConstraint("PUT") });
+        endpoints.MapPut("api/v2/symbol", PackagePublishEndpoints.UploadSymbolPackageAsync)
+            .WithName(Routes.UploadSymbolRouteName);
 
-        endpoints.MapControllerRoute(
-            name: Routes.SymbolDownloadRouteName,
-            pattern: "api/download/symbols/{file}/{key}/{file2}",
-            defaults: new { controller = "Symbol", action = "Get" });
+        endpoints.MapGet("api/download/symbols/{file}/{key}/{file2}", PackagePublishEndpoints.DownloadSymbolsAsync)
+            .WithName(Routes.SymbolDownloadRouteName);
 
-        endpoints.MapControllerRoute(
-            name: Routes.PrefixedSymbolDownloadRouteName,
-            pattern: "api/download/symbols/{prefix}/{file}/{key}/{file2}",
-            defaults: new { controller = "Symbol", action = "Get" });
+        endpoints.MapGet("api/download/symbols/{prefix}/{file}/{key}/{file2}", PackagePublishEndpoints.DownloadSymbolsAsync)
+            .WithName(Routes.PrefixedSymbolDownloadRouteName);
     }
 
     public void MapSearchRoutes(IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapControllerRoute(
-            name: Routes.SearchRouteName,
-            pattern: "v3/search",
-            defaults: new { controller = "Search", action = "Search" });
+        endpoints.MapGet("v3/search", SearchEndpoints.SearchAsync)
+            .WithName(Routes.SearchRouteName);
 
-        endpoints.MapControllerRoute(
-            name: Routes.AutocompleteRouteName,
-            pattern: "v3/autocomplete",
-            defaults: new { controller = "Search", action = "Autocomplete" });
+        endpoints.MapGet("v3/autocomplete", SearchEndpoints.AutocompleteAsync)
+            .WithName(Routes.AutocompleteRouteName);
 
         // This is an unofficial API to find packages that depend on a given package.
-        endpoints.MapControllerRoute(
-            name: Routes.DependentsRouteName,
-            pattern: "v3/dependents",
-            defaults: new { controller = "Search", action = "Dependents" });
+        endpoints.MapGet("v3/dependents", SearchEndpoints.DependentsAsync)
+            .WithName(Routes.DependentsRouteName);
     }
 
     public void MapPackageMetadataRoutes(IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapControllerRoute(
-           name: Routes.RegistrationIndexRouteName,
-           pattern: "v3/registration/{id}/index.json",
-           defaults: new { controller = "PackageMetadata", action = "RegistrationIndex" });
+        endpoints.MapGet("v3/registration/{id}/index.json", PackageMetadataEndpoints.RegistrationIndexAsync)
+            .WithName(Routes.RegistrationIndexRouteName);
 
-        endpoints.MapControllerRoute(
-            name: Routes.RegistrationLeafRouteName,
-            pattern: "v3/registration/{id}/{version}.json",
-            defaults: new { controller = "PackageMetadata", action = "RegistrationLeaf" });
+        endpoints.MapGet("v3/registration/{id}/{version}.json", PackageMetadataEndpoints.RegistrationLeafAsync)
+            .WithName(Routes.RegistrationLeafRouteName);
 
         // RegistrationsBaseUrl/3.6.0 includes SemVer 2.0.0 packages. The other variants must not.
-        endpoints.MapControllerRoute(
-           name: Routes.RegistrationSemVer2IndexRouteName,
-           pattern: "v3/registration-semver2/{id}/index.json",
-           defaults: new { controller = "PackageMetadata", action = "RegistrationIndex", semVer2 = true });
+        endpoints.MapGet("v3/registration-semver2/{id}/index.json", PackageMetadataEndpoints.SemVer2RegistrationIndexAsync)
+            .WithName(Routes.RegistrationSemVer2IndexRouteName);
 
-        endpoints.MapControllerRoute(
-            name: Routes.RegistrationSemVer2LeafRouteName,
-            pattern: "v3/registration-semver2/{id}/{version}.json",
-            defaults: new { controller = "PackageMetadata", action = "RegistrationLeaf", semVer2 = true });
+        endpoints.MapGet("v3/registration-semver2/{id}/{version}.json", PackageMetadataEndpoints.SemVer2RegistrationLeafAsync)
+            .WithName(Routes.RegistrationSemVer2LeafRouteName);
     }
 
     public void MapPackageContentRoutes(IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapControllerRoute(
-            name: Routes.PackageVersionsRouteName,
-            pattern: "v3/package/{id}/index.json",
-            defaults: new { controller = "PackageContent", action = "GetPackageVersions" });
+        endpoints.MapGet("v3/package/{id}/index.json", PackageContentEndpoints.GetPackageVersionsAsync)
+            .WithName(Routes.PackageVersionsRouteName);
 
-        endpoints.MapControllerRoute(
-            name: Routes.PackageDownloadRouteName,
-            pattern: "v3/package/{id}/{version}/{idVersion}.nupkg",
-            defaults: new { controller = "PackageContent", action = "DownloadPackage" });
+        endpoints.MapGet("v3/package/{id}/{version}/{idVersion}.nupkg", PackageContentEndpoints.DownloadPackageAsync)
+            .WithName(Routes.PackageDownloadRouteName);
 
-        endpoints.MapControllerRoute(
-            name: Routes.PackageDownloadManifestRouteName,
-            pattern: "v3/package/{id}/{version}/{id2}.nuspec",
-            defaults: new { controller = "PackageContent", action = "DownloadNuspec" });
+        endpoints.MapGet("v3/package/{id}/{version}/{id2}.nuspec", PackageContentEndpoints.DownloadNuspecAsync)
+            .WithName(Routes.PackageDownloadManifestRouteName);
 
-        endpoints.MapControllerRoute(
-            name: Routes.PackageDownloadReadmeRouteName,
-            pattern: "v3/package/{id}/{version}/readme",
-            defaults: new { controller = "PackageContent", action = "DownloadReadme" });
+        endpoints.MapGet("v3/package/{id}/{version}/readme", PackageContentEndpoints.DownloadReadmeAsync)
+            .WithName(Routes.PackageDownloadReadmeRouteName);
 
-        endpoints.MapControllerRoute(
-            name: Routes.PackageDownloadIconRouteName,
-            pattern: "v3/package/{id}/{version}/icon",
-            defaults: new { controller = "PackageContent", action = "DownloadIcon" });
+        endpoints.MapGet("v3/package/{id}/{version}/icon", PackageContentEndpoints.DownloadIconAsync)
+            .WithName(Routes.PackageDownloadIconRouteName);
 
-        endpoints.MapControllerRoute(
-            name: Routes.PackageDownloadLicenseTextRouteName,
-            pattern: "v3/package/{id}/{version}/license.txt",
-            defaults: new { controller = "PackageContent", action = "DownloadLicense" });
+        endpoints.MapGet("v3/package/{id}/{version}/license.txt", PackageContentEndpoints.DownloadLicenseTextAsync)
+            .WithName(Routes.PackageDownloadLicenseTextRouteName);
 
-        endpoints.MapControllerRoute(
-            name: Routes.PackageDownloadLicenseMarkDownRouteName,
-            pattern: "v3/package/{id}/{version}/license.md",
-            defaults: new { controller = "PackageContent", action = "DownloadLicense" });
+        endpoints.MapGet("v3/package/{id}/{version}/license.md", PackageContentEndpoints.DownloadLicenseMarkdownAsync)
+            .WithName(Routes.PackageDownloadLicenseMarkDownRouteName);
     }
 }

@@ -152,7 +152,7 @@ public interface IUrlGenerator
     /// Get the URL template users can open to see a package's details, or null if none is configured.
     /// See: https://learn.microsoft.com/en-us/nuget/api/package-details-template-resource
     /// </summary>
-    string GetPackageDetailsUriTemplate();
+    string? GetPackageDetailsUriTemplate();
 
     /// <summary>
     /// Get the URL to the repository signatures resource.

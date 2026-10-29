@@ -57,7 +57,7 @@ public class NuGetFeedServiceIndex : IServiceIndexService
 
         // The protocol requires these resources to be served over HTTPS.
         var packageDetailsUriTemplate = _url.GetPackageDetailsUriTemplate();
-        if (IsHttps(packageDetailsUriTemplate))
+        if (packageDetailsUriTemplate != null && IsHttps(packageDetailsUriTemplate))
         {
             resources.AddRange(BuildResource("PackageDetailsUriTemplate", packageDetailsUriTemplate, "5.1.0"));
         }
@@ -81,6 +81,6 @@ public class NuGetFeedServiceIndex : IServiceIndexService
         };
     }
 
-    private static bool IsHttps(string url)
+    private static bool IsHttps(string? url)
         => url != null && url.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
 }

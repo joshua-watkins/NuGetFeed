@@ -70,7 +70,7 @@ public class PackageModelFacts
         Assert.Equal("testpackage", _target.Package.PackageId);
         Assert.Equal("2.0.0", _target.Version.ToNormalizedString());
 
-        Assert.Equal(3, _target.Versions.Count);
+        Assert.Equal(3, _target.Versions!.Count);
         Assert.Equal("3.0.0", _target.Versions[0].Version.OriginalVersion);
         Assert.False(_target.Versions[0].Selected);
         Assert.Equal("2.0.0", _target.Versions[1].Version.OriginalVersion);
@@ -93,7 +93,7 @@ public class PackageModelFacts
         Assert.Equal("testpackage", _target.Package.PackageId);
         Assert.Equal("2.0.0", _target.Version.ToNormalizedString());
 
-        Assert.Equal(2, _target.Versions.Count);
+        Assert.Equal(2, _target.Versions!.Count);
         Assert.Equal("3.0.0", _target.Versions[0].Version.OriginalVersion);
         Assert.False(_target.Versions[0].Selected);
         Assert.Equal("1.0.0", _target.Versions[1].Version.OriginalVersion);
@@ -114,7 +114,7 @@ public class PackageModelFacts
         Assert.Equal("testpackage", _target.Package.PackageId);
         Assert.Equal("2.0.0", _target.Version.ToNormalizedString());
 
-        Assert.Equal(2, _target.Versions.Count);
+        Assert.Equal(2, _target.Versions!.Count);
         Assert.Equal("2.0.0", _target.Versions[0].Version.OriginalVersion);
         Assert.True(_target.Versions[0].Selected);
         Assert.Equal("1.0.0", _target.Versions[1].Version.OriginalVersion);
@@ -202,7 +202,7 @@ public class PackageModelFacts
         await _target.OnGetAsync("testpackage", "1.0.0", _cancellation);
 
         Assert.True(_target.Found);
-        Assert.Equal(2, _target.DependencyGroups.Count);
+        Assert.Equal(2, _target.DependencyGroups!.Count);
         Assert.Equal(".NET 5.0", _target.DependencyGroups[0].Name);
         Assert.Equal(".NET Framework 4.8", _target.DependencyGroups[1].Name);
 
@@ -225,7 +225,7 @@ public class PackageModelFacts
     [InlineData("netstandard2.1", ".NET Standard 2.1")]
     [InlineData("netcoreapp3.1", ".NET Core 3.1")]
     [InlineData("net4.8", ".NET Framework 4.8")]
-    public async Task PrettifiesTargetFramework(string targetFramework, string expectedResult)
+    public async Task PrettifiesTargetFramework(string? targetFramework, string expectedResult)
     {
         SetupPackages(CreatePackage("1.0.0", dependencyGroups: new[]
         {
@@ -242,7 +242,7 @@ public class PackageModelFacts
         await _target.OnGetAsync("testpackage", "1.0.0", _cancellation);
 
         Assert.True(_target.Found);
-        var group = Assert.Single(_target.DependencyGroups);
+        var group = Assert.Single(_target.DependencyGroups!);
         Assert.Equal(expectedResult, group.Name);
     }
 
@@ -305,7 +305,7 @@ public class PackageModelFacts
 
             Assert.Equal(
                 "<h1 id=\"my-readme\">My readme</h1>\n<p>Hello world!</p>\n",
-                _target.Readme.Value);
+                _target.Readme!.Value);
         }
     }
 
@@ -322,8 +322,8 @@ public class PackageModelFacts
         bool hasReadme = false,
         bool listed = true,
         DateTimeOffset? published = null,
-        IEnumerable<DependencyGroupItem> dependencyGroups = null,
-        IEnumerable<string> packageTypes = null)
+        IEnumerable<DependencyGroupItem>? dependencyGroups = null,
+        IEnumerable<string>? packageTypes = null)
     {
         return new NuGetFeedPackageMetadata
         {

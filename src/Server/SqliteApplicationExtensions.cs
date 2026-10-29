@@ -11,7 +11,7 @@ public static class SqliteApplicationExtensions
 {
     public static NuGetFeedApplication AddSqliteDatabase(this NuGetFeedApplication app)
     {
-        app.Services.AddNuGetFeedDbContextProvider<SqliteContext>("Sqlite", (provider, options) =>
+        app.Services.AddNuGetFeedDatabaseProvider("Sqlite", (provider, options) =>
         {
             var databaseOptions = provider.GetRequiredService<IOptionsSnapshot<DatabaseOptions>>();
 

@@ -65,7 +65,7 @@ public static class StreamExtensions
 
         sha512.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
 
-        return (Convert.ToBase64String(sha512.Hash), size);
+        return (Convert.ToBase64String(sha512.Hash!), size);
     }
 
     public static bool Matches(this Stream content, Stream target)

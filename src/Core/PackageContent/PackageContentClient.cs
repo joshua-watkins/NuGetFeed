@@ -19,7 +19,7 @@ public partial class NuGetClientFactory
             _clientfactory = clientFactory ?? throw new ArgumentNullException(nameof(clientFactory));
         }
 
-        public async Task<Stream> DownloadPackageOrNullAsync(
+        public async Task<Stream?> DownloadPackageOrNullAsync(
             string packageId,
             NuGetVersion packageVersion,
             CancellationToken cancellationToken = default)
@@ -29,7 +29,7 @@ public partial class NuGetClientFactory
             return await client.DownloadPackageOrNullAsync(packageId, packageVersion, cancellationToken);
         }
 
-        public async Task<Stream> DownloadPackageManifestOrNullAsync(
+        public async Task<Stream?> DownloadPackageManifestOrNullAsync(
             string packageId,
             NuGetVersion packageVersion,
             CancellationToken cancellationToken = default)
@@ -39,7 +39,7 @@ public partial class NuGetClientFactory
             return await client.DownloadPackageManifestOrNullAsync(packageId, packageVersion, cancellationToken);
         }
 
-        public async Task<PackageVersionsResponse> GetPackageVersionsOrNullAsync(
+        public async Task<PackageVersionsResponse?> GetPackageVersionsOrNullAsync(
             string packageId,
             CancellationToken cancellationToken = default)
         {

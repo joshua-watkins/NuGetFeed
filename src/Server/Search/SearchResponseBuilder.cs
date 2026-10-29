@@ -41,7 +41,8 @@ public class SearchResponseBuilder : ISearchResponseBuilder
                 IconUrl = iconUrl,
                 LicenseUrl = licenseUrl,
                 PackageTypes = (latest.PackageTypes ?? new List<PackageType>())
-                    .Select(t => new SearchResultPackageType { Name = t.Name })
+                    .Where(t => t.Name != null)
+                    .Select(t => new SearchResultPackageType { Name = t.Name! })
                     .ToList(),
                 ProjectUrl = latest.ProjectUrlString,
                 RegistrationIndexUrl = _url.GetRegistrationIndexUrl(latest.Id, includeSemVer2),

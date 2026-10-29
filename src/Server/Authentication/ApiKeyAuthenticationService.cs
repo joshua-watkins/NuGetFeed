@@ -8,7 +8,7 @@ namespace NuGetFeed.Authentication;
 
 public class ApiKeyAuthenticationService : IAuthenticationService
 {
-    private readonly string _apiKey;
+    private readonly string? _apiKey;
 
     public ApiKeyAuthenticationService(IOptionsSnapshot<NuGetFeedOptions> options)
     {
@@ -17,10 +17,10 @@ public class ApiKeyAuthenticationService : IAuthenticationService
         _apiKey = string.IsNullOrEmpty(options.Value.ApiKey) ? null : options.Value.ApiKey;
     }
 
-    public Task<bool> AuthenticateAsync(string apiKey, CancellationToken cancellationToken)
+    public Task<bool> AuthenticateAsync(string? apiKey, CancellationToken cancellationToken)
         => Task.FromResult(Authenticate(apiKey));
 
-    private bool Authenticate(string apiKey)
+    private bool Authenticate(string? apiKey)
     {
         // No authentication is necessary if there is no required API key.
         if (_apiKey == null) return true;

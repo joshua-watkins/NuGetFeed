@@ -18,13 +18,13 @@ public partial class NuGetClientFactory
         }
 
         public async Task<SearchResponse> SearchAsync(
-            string query = null,
+            string? query = null,
             int skip = 0,
             int take = 20,
             bool includePrerelease = true,
             bool includeSemVer2 = true,
-            string packageType = null,
-            string framework = null,
+            string? packageType = null,
+            string? framework = null,
             CancellationToken cancellationToken = default)
         {
             // TODO: Support search failover.

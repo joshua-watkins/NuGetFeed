@@ -19,7 +19,7 @@ public class StringArrayToJsonConverterTests
     [Fact]
     public void StoresValuesLikeJsonNet()
     {
-        var stored = (string)_converter.ConvertToProvider(new[] { "c++", "<web>", "café", "a\"b" });
+        var stored = (string?)_converter.ConvertToProvider(new[] { "c++", "<web>", "café", "a\"b" });
 
         Assert.Equal("[\"c++\",\"<web>\",\"café\",\"a\\\"b\"]", stored);
     }
@@ -31,7 +31,7 @@ public class StringArrayToJsonConverterTests
     [InlineData("", new string[0])]
     public void ReadsStoredValues(string stored, string[] expected)
     {
-        Assert.Equal(expected, (string[])_converter.ConvertFromProvider(stored));
+        Assert.Equal(expected, (string[]?)_converter.ConvertFromProvider(stored));
     }
 }
 

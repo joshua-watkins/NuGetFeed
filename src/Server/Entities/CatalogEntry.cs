@@ -17,25 +17,25 @@ public class CatalogEntry
     /// </summary>
     public int Key { get; set; }
 
-    public string CommitId { get; set; }
+    public string CommitId { get; set; } = null!;
 
     public DateTime CommitTimestamp { get; set; }
 
     /// <summary>
     /// <see cref="PackageDetailsType"/> or <see cref="PackageDeleteType"/>.
     /// </summary>
-    public string Type { get; set; }
+    public string Type { get; set; } = null!;
 
-    public string PackageId { get; set; }
+    public string PackageId { get; set; } = null!;
 
     /// <summary>
     /// The package's full normalized version, including SemVer 2.0.0 build metadata.
     /// </summary>
-    public string PackageVersion { get; set; }
+    public string PackageVersion { get; set; } = null!;
 
     /// <summary>
     /// The package's state at the time of the entry, as JSON. Null for deletions.
     /// URLs to this server are stored without a host, so they're rendered per request.
     /// </summary>
-    public string Content { get; set; }
+    public string? Content { get; set; }
 }

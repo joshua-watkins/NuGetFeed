@@ -14,13 +14,13 @@ namespace NuGetFeed.Indexing;
 public class PackageDeprecationService : IPackageDeprecationService
 {
     private readonly IPackageDatabase _packages;
-    private readonly IContext _context;
+    private readonly NuGetFeedContext _context;
     private readonly ICatalogService _catalog;
     private readonly ILogger<PackageDeprecationService> _logger;
 
     public PackageDeprecationService(
         IPackageDatabase packages,
-        IContext context,
+        NuGetFeedContext context,
         ICatalogService catalog,
         ILogger<PackageDeprecationService> logger)
     {
@@ -34,9 +34,9 @@ public class PackageDeprecationService : IPackageDeprecationService
         string id,
         NuGetVersion version,
         IReadOnlyList<string> reasons,
-        string message,
-        string alternatePackageId,
-        string alternatePackageVersionRange,
+        string? message,
+        string? alternatePackageId,
+        string? alternatePackageVersionRange,
         CancellationToken cancellationToken)
     {
         _logger.LogInformation("Deprecating package {PackageId} {PackageVersion}...", id, version);

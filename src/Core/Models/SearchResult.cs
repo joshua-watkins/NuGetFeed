@@ -15,75 +15,75 @@ public class SearchResult
     /// The ID of the matched package.
     /// </summary>
     [JsonPropertyName("id")]
-    public string PackageId { get; set; }
+    public string PackageId { get; set; } = null!;
 
     /// <summary>
     /// The latest version of the matched pacakge. This is the full NuGet version after normalization,
     /// including any SemVer 2.0.0 build metadata.
     /// </summary>
     [JsonPropertyName("version")]
-    public string Version { get; set; }
+    public string Version { get; set; } = null!;
 
     /// <summary>
     /// The description of the matched package.
     /// </summary>
     [JsonPropertyName("description")]
-    public string Description { get; set; }
+    public string? Description { get; set; }
 
     /// <summary>
     /// The authors of the matched package.
     /// </summary>
     [JsonPropertyName("authors")]
     [JsonConverter(typeof(StringOrStringArrayJsonConverter))]
-    public IReadOnlyList<string> Authors { get; set; }
+    public IReadOnlyList<string>? Authors { get; set; }
 
     /// <summary>
     /// The URL of the matched package's icon.
     /// </summary>
     [JsonPropertyName("iconUrl")]
-    public string IconUrl { get; set; }
+    public string? IconUrl { get; set; }
 
     /// <summary>
     /// The URL of the matched package's license.
     /// </summary>
     [JsonPropertyName("licenseUrl")]
-    public string LicenseUrl { get; set; }
+    public string? LicenseUrl { get; set; }
 
     /// <summary>
     /// The package types defined by the package author.
     /// </summary>
     [JsonPropertyName("packageTypes")]
-    public IReadOnlyList<SearchResultPackageType> PackageTypes { get; set; }
+    public IReadOnlyList<SearchResultPackageType>? PackageTypes { get; set; }
 
     /// <summary>
     /// The URL of the matched package's homepage.
     /// </summary>
     [JsonPropertyName("projectUrl")]
-    public string ProjectUrl { get; set; }
+    public string? ProjectUrl { get; set; }
 
     /// <summary>
     /// The URL for the matched package's registration index.
     /// </summary>
     [JsonPropertyName("registration")]
-    public string RegistrationIndexUrl { get; set; }
+    public string? RegistrationIndexUrl { get; set; }
 
     /// <summary>
     /// The summary of the matched package.
     /// </summary>
     [JsonPropertyName("summary")]
-    public string Summary { get; set; }
+    public string? Summary { get; set; }
 
     /// <summary>
     /// The tags of the matched package.
     /// </summary>
     [JsonPropertyName("tags")]
-    public IReadOnlyList<string> Tags { get; set; }
+    public IReadOnlyList<string>? Tags { get; set; }
 
     /// <summary>
     /// The title of the matched package.
     /// </summary>
     [JsonPropertyName("title")]
-    public string Title { get; set; }
+    public string? Title { get; set; }
 
     /// <summary>
     /// The total downloads for all versions of the matched package.
@@ -95,17 +95,17 @@ public class SearchResult
     /// The versions of the matched package.
     /// </summary>
     [JsonPropertyName("versions")]
-    public IReadOnlyList<SearchResultVersion> Versions { get; set; }
+    public IReadOnlyList<SearchResultVersion> Versions { get; set; } = null!;
 
     /// <summary>
     /// The deprecation of the matched package's latest version, if any.
     /// </summary>
     [JsonPropertyName("deprecation")]
-    public PackageDeprecation Deprecation { get; set; }
+    public PackageDeprecation? Deprecation { get; set; }
 
     /// <summary>
     /// The known security vulnerabilities of the matched package's latest version.
     /// </summary>
     [JsonPropertyName("vulnerabilities")]
-    public IReadOnlyList<PackageVulnerability> Vulnerabilities { get; set; }
+    public IReadOnlyList<PackageVulnerability>? Vulnerabilities { get; set; }
 }

@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,11 +15,14 @@ internal static class HttpClientExtensions
     /// <typeparam name="TResult">The JSON type to deserialize.</typeparam>
     /// <param name="httpClient">The HTTP client that will perform the request.</param>
     /// <param name="requestUri">The request URI.</param>
+    /// <param name="jsonTypeInfo">The JSON metadata of <typeparamref name="TResult"/>.</param>
     /// <param name="cancellationToken">A token to cancel the task.</param>
     /// <returns>The deserialized JSON content</returns>
+    /// <exception cref="JsonException">The response's content is the JSON <c>null</c>.</exception>
     public static async Task<TResult> GetFromJsonAsync<TResult>(
         this HttpClient httpClient,
         string requestUri,
+        JsonTypeInfo<TResult> jsonTypeInfo,
         CancellationToken cancellationToken = default)
     {
         using (var response = await httpClient.GetAsync(
@@ -30,10 +34,7 @@ internal static class HttpClientExtensions
             // this does not validate that the response's content type indicates JSON content.
             response.EnsureSuccessStatusCode();
 
-            using (var stream = await response.Content.ReadAsStreamAsync())
-            {
-                return await JsonSerializer.DeserializeAsync<TResult>(stream, cancellationToken: cancellationToken);
-            }
+            return await ReadContentAsync(response, requestUri, jsonTypeInfo, cancellationToken);
         }
     }
 
@@ -44,12 +45,15 @@ internal static class HttpClientExtensions
     /// <typeparam name="TResult">The JSON type to deserialize.</typeparam>
     /// <param name="httpClient">The HTTP client that will perform the request.</param>
     /// <param name="requestUri">The request URI.</param>
+    /// <param name="jsonTypeInfo">The JSON metadata of <typeparamref name="TResult"/>.</param>
     /// <param name="cancellationToken">A token to cancel the task.</param>
     /// <returns>The JSON content, or, the default value if the HTTP response status code is 404.</returns>
-    public static async Task<TResult> GetFromJsonOrDefaultAsync<TResult>(
+    public static async Task<TResult?> GetFromJsonOrDefaultAsync<TResult>(
         this HttpClient httpClient,
         string requestUri,
+        JsonTypeInfo<TResult> jsonTypeInfo,
         CancellationToken cancellationToken = default)
+        where TResult : class
     {
         using (var response = await httpClient.GetAsync(
             requestUri,
@@ -63,10 +67,20 @@ internal static class HttpClientExtensions
 
             response.EnsureSuccessStatusCode();
 
-            using (var stream = await response.Content.ReadAsStreamAsync())
-            {
-                return await JsonSerializer.DeserializeAsync<TResult>(stream, cancellationToken: cancellationToken);
-            }
+            return await ReadContentAsync(response, requestUri, jsonTypeInfo, cancellationToken);
+        }
+    }
+
+    private static async Task<TResult> ReadContentAsync<TResult>(
+        HttpResponseMessage response,
+        string requestUri,
+        JsonTypeInfo<TResult> jsonTypeInfo,
+        CancellationToken cancellationToken)
+    {
+        using (var stream = await response.Content.ReadAsStreamAsync(cancellationToken))
+        {
+            return await JsonSerializer.DeserializeAsync(stream, jsonTypeInfo, cancellationToken)
+                ?? throw new JsonException($"The response from '{requestUri}' is empty.");
         }
     }
 }

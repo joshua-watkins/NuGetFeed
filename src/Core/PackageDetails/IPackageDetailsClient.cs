@@ -37,7 +37,7 @@ public interface IPackageDetailsClient
     /// <param name="packageVersion">The package's version.</param>
     /// <param name="cancellationToken">A token to cancel the task.</param>
     /// <returns>The readme stream, or null. The stream may not be seekable.</returns>
-    Task<Stream> GetPackageReadmeStreamOrNullAsync(
+    Task<Stream?> GetPackageReadmeStreamOrNullAsync(
         string packageId,
         NuGetVersion packageVersion,
         CancellationToken cancellationToken = default);

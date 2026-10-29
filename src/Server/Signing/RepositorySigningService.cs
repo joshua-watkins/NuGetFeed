@@ -31,9 +31,9 @@ public sealed class RepositorySigningService : IRepositorySigningService, IDispo
         }
     }
 
-    public X509Certificate2 Certificate { get; }
+    public X509Certificate2? Certificate { get; }
 
-    public string CertificateFingerprint { get; }
+    public string? CertificateFingerprint { get; }
 
     public async Task<RepositorySigningResult> SignAsync(
         Stream package,
@@ -96,7 +96,7 @@ public sealed class RepositorySigningService : IRepositorySigningService, IDispo
                 : new Rfc3161TimestampProvider(new Uri(_options.TimestampServerUrl));
 
             // Disposing the request disposes its certificate, so give it a copy of ours.
-            using var certificate = new X509Certificate2(Certificate);
+            using var certificate = new X509Certificate2(Certificate!);
             using var request = new RepositorySignPackageRequest(
                 certificate,
                 NuGet.Common.HashAlgorithmName.SHA256,
@@ -127,7 +127,7 @@ public sealed class RepositorySigningService : IRepositorySigningService, IDispo
         }
     }
 
-    private static async Task<X509Certificate2> GetRepositorySignerOrNullAsync(Stream package, CancellationToken cancellationToken)
+    private static async Task<X509Certificate2?> GetRepositorySignerOrNullAsync(Stream package, CancellationToken cancellationToken)
     {
         package.Position = 0;
         using var reader = new PackageArchiveReader(package, leaveStreamOpen: true);
@@ -135,6 +135,8 @@ public sealed class RepositorySigningService : IRepositorySigningService, IDispo
         if (!await reader.IsSignedAsync(cancellationToken)) return null;
 
         var primary = await reader.GetPrimarySignatureAsync(cancellationToken);
+        if (primary == null) return null;
+
         if (primary.Type == SignatureType.Repository)
         {
             return primary.SignerInfo.Certificate;
@@ -165,7 +167,7 @@ public sealed class RepositorySigningService : IRepositorySigningService, IDispo
         using var store = new X509Store(name, location);
         store.Open(OpenFlags.ReadOnly);
 
-        var matches = store.Certificates.Find(X509FindType.FindByThumbprint, options.CertificateThumbprint, validOnly: false);
+        var matches = store.Certificates.Find(X509FindType.FindByThumbprint, options.CertificateThumbprint ?? string.Empty, validOnly: false);
         if (matches.Count == 0)
         {
             throw new InvalidOperationException(

@@ -1,19 +1,21 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
 		<AssemblyName>$(SolutionName).$(MSBuildProjectName)</AssemblyName>
 		<RootNamespace>$(SolutionName)</RootNamespace>
 		<IsAotCompatible>true</IsAotCompatible>
 		<EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
-		<RazorCompileOnBuild>true</RazorCompileOnBuild>
+		<!-- Generates the minimal API endpoints' request handling at compile time instead of with reflection. -->
+		<EnableRequestDelegateGenerator>true</EnableRequestDelegateGenerator>
+		<!-- Razor Slices compiles the pages with the Razor compiler's MVC support. The website doesn't use MVC at runtime. -->
 		<AddRazorSupportForMvc>true</AddRazorSupportForMvc>
-		<!-- Switch to Razor Slices which are AOT compatible. -->
+		<!-- Serve the website's files at the same path whether it runs on its own or inside a host. -->
+		<StaticWebAssetBasePath>_content/NuGetFeed.Website</StaticWebAssetBasePath>
+		<!-- The Windows installer (pub/Setup) publishes the Windows service, which references this project, for win-x64. -->
+		<RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
 	</PropertyGroup>
-
-	<ItemGroup>
-		<FrameworkReference Include="Microsoft.AspNetCore.App" />
-	</ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Humanizer" Version="3.0.10" />
@@ -29,12 +31,17 @@
 		<EnableDefaultRazorSlices>false</EnableDefaultRazorSlices>
 	</PropertyGroup>
 	<ItemGroup>
-		<!-- Only treat .cshtml files in Slices directory as Razor Slices -->
-		<RazorSlice Include="Slices\**\*.cshtml" Exclude="Slices\**\_Layout.cshtml;Slices\**\_ViewImports.cshtml" />
+		<!-- Only treat .cshtml files in Slices directory as Razor Slices. The layout is a slice too. -->
+		<RazorSlice Include="Slices\**\*.cshtml" Exclude="Slices\**\_ViewImports.cshtml" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\Core\Core.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<!-- The tests create the pages' models directly. -->
+		<InternalsVisibleTo Include="$(SolutionName).Website.Tests" />
 	</ItemGroup>
 
 </Project>

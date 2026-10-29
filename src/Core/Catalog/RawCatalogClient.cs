@@ -1,10 +1,12 @@
 using System;
 using System.Linq;
 using System.Net.Http;
+using System.Text.Json.Serialization.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGetFeed.Extensions;
 using NuGetFeed.Models;
+using NuGetFeed.Serialization;
 
 namespace NuGetFeed.Catalog;
 
@@ -21,38 +23,41 @@ public class RawCatalogClient : ICatalogClient
 
     public async Task<CatalogIndex> GetIndexAsync(CancellationToken cancellationToken = default)
     {
-        return await _httpClient.GetFromJsonAsync<CatalogIndex>(_catalogUrl, cancellationToken);
+        return await _httpClient.GetFromJsonAsync(_catalogUrl, NuGetJsonContext.Default.CatalogIndex, cancellationToken);
     }
 
     public async Task<CatalogPage> GetPageAsync(string pageUrl, CancellationToken cancellationToken = default)
     {
-        return await _httpClient.GetFromJsonAsync<CatalogPage>(pageUrl, cancellationToken);
+        return await _httpClient.GetFromJsonAsync(pageUrl, NuGetJsonContext.Default.CatalogPage, cancellationToken);
     }
 
     public async Task<PackageDeleteCatalogLeaf> GetPackageDeleteLeafAsync(string leafUrl, CancellationToken cancellationToken = default)
     {
-        return await GetAndValidateLeafAsync<PackageDeleteCatalogLeaf>(
+        return await GetAndValidateLeafAsync(
             "PackageDelete",
             leafUrl,
+            NuGetJsonContext.Default.PackageDeleteCatalogLeaf,
             cancellationToken);
     }
 
     public async Task<PackageDetailsCatalogLeaf> GetPackageDetailsLeafAsync(string leafUrl, CancellationToken cancellationToken = default)
     {
-        return await GetAndValidateLeafAsync<PackageDetailsCatalogLeaf>(
+        return await GetAndValidateLeafAsync(
             "PackageDetails",
             leafUrl,
+            NuGetJsonContext.Default.PackageDetailsCatalogLeaf,
             cancellationToken);
     }
 
     private async Task<TCatalogLeaf> GetAndValidateLeafAsync<TCatalogLeaf>(
         string leafType,
         string leafUrl,
+        JsonTypeInfo<TCatalogLeaf> jsonTypeInfo,
         CancellationToken cancellationToken) where TCatalogLeaf : CatalogLeaf
     {
-        var leaf = await _httpClient.GetFromJsonAsync<TCatalogLeaf>(leafUrl, cancellationToken);
+        var leaf = await _httpClient.GetFromJsonAsync(leafUrl, jsonTypeInfo, cancellationToken);
 
-        if (leaf.Type.FirstOrDefault() != leafType)
+        if (leaf.Type?.FirstOrDefault() != leafType)
         {
             throw new ArgumentException(
                 $"The leaf type found in the document does not match the expected '{leafType}' type.",

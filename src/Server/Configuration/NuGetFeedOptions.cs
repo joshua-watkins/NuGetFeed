@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace NuGetFeed.Configuration;
 
 public class NuGetFeedOptions
@@ -8,12 +6,12 @@ public class NuGetFeedOptions
     /// The API Key required to authenticate package
     /// operations. If empty, package operations do not require authentication.
     /// </summary>
-    public string ApiKey { get; set; }
+    public string? ApiKey { get; set; }
 
     /// <summary>
     /// The application root URL for usage in reverse proxy scenarios.
     /// </summary>
-    public string PathBase { get; set; }
+    public string? PathBase { get; set; }
 
     /// <summary>
     /// If enabled, the database will be updated at app startup by running
@@ -41,7 +39,7 @@ public class NuGetFeedOptions
     /// The URLs the NuGetFeed server will use.
     /// As per documentation <a href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/host/web-host?view=aspnetcore-3.1#server-urls">here (Server URLs)</a>.
     /// </summary>
-    public string Urls { get; set; }
+    public string? Urls { get; set; }
 
     /// <summary>
     /// The web page where users can see a package's details, with {id} and {version}
@@ -50,18 +48,18 @@ public class NuGetFeedOptions
     /// clients aren't given a link. Only advertised over HTTPS, as the protocol requires.
     /// See: https://learn.microsoft.com/en-us/nuget/api/package-details-template-resource
     /// </summary>
-    public string PackageDetailsUriTemplate { get; set; }
+    public string? PackageDetailsUriTemplate { get; set; }
 
     /// <summary>
     /// The certificate used to repository sign pushed packages. Signing is off if no certificate is set.
     /// </summary>
-    public RepositorySigningOptions RepositorySigning { get; set; }
+    public RepositorySigningOptions? RepositorySigning { get; set; }
 
-    public DatabaseOptions Database { get; set; }
+    public DatabaseOptions? Database { get; set; }
 
-    public StorageOptions Storage { get; set; }
+    public StorageOptions? Storage { get; set; }
 
-    public SearchOptions Search { get; set; }
+    public SearchOptions? Search { get; set; }
 
-    public MirrorOptions Mirror { get; set; }
+    public MirrorOptions? Mirror { get; set; }
 }

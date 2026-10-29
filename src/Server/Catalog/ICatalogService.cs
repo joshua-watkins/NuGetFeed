@@ -28,10 +28,10 @@ public interface ICatalogService
     Task<CatalogIndex> GetIndexAsync(CancellationToken cancellationToken);
 
     /// <returns>The page, or null if it doesn't exist.</returns>
-    Task<CatalogPage> GetPageOrNullAsync(int page, CancellationToken cancellationToken);
+    Task<CatalogPage?> GetPageOrNullAsync(int page, CancellationToken cancellationToken);
 
     /// <returns>A <see cref="PackageDetailsCatalogLeaf"/> or <see cref="PackageDeleteCatalogLeaf"/>, or null if it doesn't exist.</returns>
-    Task<CatalogLeaf> GetLeafOrNullAsync(int key, CancellationToken cancellationToken);
+    Task<CatalogLeaf?> GetLeafOrNullAsync(int key, CancellationToken cancellationToken);
 
     /// <summary>
     /// Find the URL of the latest catalog leaf for each version of a package.

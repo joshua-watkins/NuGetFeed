@@ -5,7 +5,7 @@ and persists packages. Run it directly as the feed's HTTP server (`dotnet run`, 
 or add it to another host with `services.AddNuGetFeed(...)`, `app.UseNuGetFeed()` and `endpoints.MapNuGetFeed()`.
 The important folders are:
 
-* Controllers - The NuGet V3 API endpoints
+* Endpoints - The NuGet V3 API endpoints, as minimal APIs
 * Indexing - Logic to upload and delete packages and symbols, and to deprecate packages
 * Metadata, Content, Search, ServiceIndex - Server implementations of the protocol resources
 * Catalog - The append-only record of package changes, served as the catalog resource

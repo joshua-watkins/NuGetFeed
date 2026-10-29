@@ -35,9 +35,9 @@ public class PackageStorageService : IPackageStorageService
         Package package,
         Stream packageStream,
         Stream nuspecStream,
-        Stream readmeStream,
-        Stream iconStream,
-        Stream licenseStream,
+        Stream? readmeStream,
+        Stream? iconStream,
+        Stream? licenseStream,
         CancellationToken cancellationToken = default)
     {
         package = package ?? throw new ArgumentNullException(nameof(package));
@@ -175,27 +175,27 @@ public class PackageStorageService : IPackageStorageService
             lowercasedNormalizedVersion);
     }
 
-    public async Task<Stream> GetPackageStreamAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
+    public async Task<Stream?> GetPackageStreamAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
     {
         return await GetStreamAsync(id, version, PackagePath, cancellationToken);
     }
 
-    public async Task<Stream> GetNuspecStreamAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
+    public async Task<Stream?> GetNuspecStreamAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
     {
         return await GetStreamAsync(id, version, NuspecPath, cancellationToken);
     }
 
-    public async Task<Stream> GetReadmeStreamAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
+    public async Task<Stream?> GetReadmeStreamAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
     {
         return await GetStreamAsync(id, version, ReadmePath, cancellationToken);
     }
 
-    public async Task<Stream> GetIconStreamAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
+    public async Task<Stream?> GetIconStreamAsync(string id, NuGetVersion version, CancellationToken cancellationToken)
     {
         return await GetStreamAsync(id, version, IconPath, cancellationToken);
     }
 
-    public async Task<Stream> GetLicenseStreamAsync(string id, NuGetVersion version, bool licenseIsMarkDown, CancellationToken cancellationToken)
+    public async Task<Stream?> GetLicenseStreamAsync(string id, NuGetVersion version, bool licenseIsMarkDown, CancellationToken cancellationToken)
     {
         var lowercasedId = id.ToLowerInvariant();
         var lowercasedNormalizedVersion = version.ToNormalizedString().ToLowerInvariant();
@@ -225,7 +225,7 @@ public class PackageStorageService : IPackageStorageService
         await _storage.DeleteAsync(licensePath, cancellationToken);
     }
 
-    private async Task<Stream> GetStreamAsync(string id, NuGetVersion version, Func<string, string, string> pathFunc, CancellationToken cancellationToken)
+    private async Task<Stream?> GetStreamAsync(string id, NuGetVersion version, Func<string, string, string> pathFunc, CancellationToken cancellationToken)
     {
         var lowercasedId = id.ToLowerInvariant();
         var lowercasedNormalizedVersion = version.ToNormalizedString().ToLowerInvariant();
@@ -247,7 +247,7 @@ public class PackageStorageService : IPackageStorageService
         }
     }
 
-    private async Task<Stream> GetStreamAsync(string path, CancellationToken cancellationToken)
+    private async Task<Stream?> GetStreamAsync(string path, CancellationToken cancellationToken)
     {
         try
         {

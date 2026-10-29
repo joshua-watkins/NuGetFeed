@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
@@ -6,23 +7,21 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
-using NuGetFeed;
 using NuGetFeed.Authentication;
 using NuGetFeed.Catalog;
-using NuGetFeed.Signing;
-using NuGetFeed.Vulnerabilities;
 using NuGetFeed.Configuration;
 using NuGetFeed.Content;
 using NuGetFeed.Entities;
-using NuGetFeed.Extensions;
 using NuGetFeed.Indexing;
 using NuGetFeed.Metadata;
 using NuGetFeed.Search;
 using NuGetFeed.ServiceIndex;
+using NuGetFeed.Signing;
 using NuGetFeed.Storage;
 using NuGetFeed.Upstream;
 using NuGetFeed.Upstream.Clients;
 using NuGetFeed.Validation;
+using NuGetFeed.Vulnerabilities;
 
 namespace NuGetFeed.Extensions;
 
@@ -45,44 +44,33 @@ public static partial class DependencyInjectionExtensions
         return services;
     }
 
-    /// <summary>
-    /// Configures and validates options.
-    /// </summary>
-    /// <typeparam name="TOptions">The options type that should be added.</typeparam>
-    /// <param name="services">The dependency injection container to add options.</param>
-    /// <param name="key">
-    /// The configuration key that should be used when configuring the options.
-    /// If null, the root configuration will be used to configure the options.
-    /// </param>
-    /// <returns>The dependency injection container.</returns>
-    public static IServiceCollection AddNuGetFeedOptions<TOptions>(
-        this IServiceCollection services,
-        string key = null)
-        where TOptions : class
-    {
-        services.AddSingleton<IValidateOptions<TOptions>>(new ValidateNuGetFeedOptions<TOptions>(key));
-        services.AddSingleton<IConfigureOptions<TOptions>>(provider =>
-        {
-            var config = provider.GetRequiredService<IConfiguration>();
-            if (key != null)
-            {
-                config = config.GetSection(key);
-            }
-
-            return new BindOptions<TOptions>(config);
-        });
-
-        return services;
-    }
-
     private static void AddConfiguration(this IServiceCollection services)
     {
-        services.AddNuGetFeedOptions<NuGetFeedOptions>();
-        services.AddNuGetFeedOptions<DatabaseOptions>(nameof(NuGetFeedOptions.Database));
-        services.AddNuGetFeedOptions<FileSystemStorageOptions>(nameof(NuGetFeedOptions.Storage));
-        services.AddNuGetFeedOptions<MirrorOptions>(nameof(NuGetFeedOptions.Mirror));
-        services.AddNuGetFeedOptions<SearchOptions>(nameof(NuGetFeedOptions.Search));
-        services.AddNuGetFeedOptions<StorageOptions>(nameof(NuGetFeedOptions.Storage));
+        // Each options type binds its own configuration section. The configuration binding
+        // source generator turns these Bind calls into code, so they don't need reflection.
+        services.AddOptions<NuGetFeedOptions>()
+            .Configure<IConfiguration>((options, config) => config.Bind(options));
+        services.AddOptions<DatabaseOptions>()
+            .Configure<IConfiguration>((options, config) => config.GetSection(nameof(NuGetFeedOptions.Database)).Bind(options));
+        services.AddOptions<FileSystemStorageOptions>()
+            .Configure<IConfiguration>((options, config) => config.GetSection(nameof(NuGetFeedOptions.Storage)).Bind(options))
+            .PostConfigure(options =>
+            {
+                // Store content in the current working directory by default.
+                if (string.IsNullOrEmpty(options.Path))
+                {
+                    options.Path = Directory.GetCurrentDirectory();
+                }
+            });
+        services.AddOptions<MirrorOptions>()
+            .Configure<IConfiguration>((options, config) => config.GetSection(nameof(NuGetFeedOptions.Mirror)).Bind(options));
+        services.AddOptions<SearchOptions>()
+            .Configure<IConfiguration>((options, config) => config.GetSection(nameof(NuGetFeedOptions.Search)).Bind(options));
+        services.AddOptions<StorageOptions>()
+            .Configure<IConfiguration>((options, config) => config.GetSection(nameof(NuGetFeedOptions.Storage)).Bind(options));
+
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<DatabaseOptions>, ValidateNuGetFeedOptions>());
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<MirrorOptions>, ValidateNuGetFeedOptions>());
     }
 
     private static void AddNuGetFeedServices(this IServiceCollection services)
@@ -121,7 +109,6 @@ public static partial class DependencyInjectionExtensions
         services.TryAddTransient<DatabaseSearchService>();
         services.TryAddTransient<FileStorageService>();
         services.TryAddTransient<PackageService>();
-        services.TryAddTransient<V2UpstreamClient>();
         services.TryAddTransient<V3UpstreamClient>();
         services.TryAddTransient<DisabledUpstreamClient>();
         services.TryAddSingleton<NullStorageService>();
@@ -164,8 +151,6 @@ public static partial class DependencyInjectionExtensions
 
     private static void AddFallbackServices(this IServiceCollection services)
     {
-        services.TryAddScoped<IContext, NullContext>();
-
         // NuGetFeed's services have multiple implementations that live side-by-side.
         // The application will choose the implementation using one of two ways:
         //
@@ -190,7 +175,7 @@ public static partial class DependencyInjectionExtensions
     {
         var options = provider.GetRequiredService<IOptions<MirrorOptions>>().Value;
 
-        var assembly = Assembly.GetEntryAssembly();
+        var assembly = Assembly.GetEntryAssembly() ?? typeof(DependencyInjectionExtensions).Assembly;
         var assemblyName = assembly.GetName().Name;
         var assemblyVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "0.0.0";
 
@@ -209,30 +194,19 @@ public static partial class DependencyInjectionExtensions
     {
         var httpClient = provider.GetRequiredService<HttpClient>();
         var options = provider.GetRequiredService<IOptions<MirrorOptions>>();
+        var packageSource = options.Value.PackageSource
+            ?? throw new InvalidOperationException(
+                $"The '{nameof(NuGetFeedOptions.Mirror)}:{nameof(MirrorOptions.PackageSource)}' config is required to mirror packages.");
 
-        return new NuGetClientFactory(
-            httpClient,
-            options.Value.PackageSource.ToString());
+        return new NuGetClientFactory(httpClient, packageSource.ToString());
     }
 
     private static IUpstreamClient UpstreamClientFactory(IServiceProvider provider)
     {
-        var options = provider.GetRequiredService<IOptionsSnapshot<MirrorOptions>>();
+        var options = provider.GetRequiredService<IOptionsSnapshot<MirrorOptions>>().Value;
 
-        // TODO: Convert to switch expression.
-        if (!options.Value.Enabled)
-        {
-            return provider.GetRequiredService<DisabledUpstreamClient>();
-        }
+        if (!options.Enabled) return provider.GetRequiredService<DisabledUpstreamClient>();
 
-        else if (options.Value.Legacy)
-        {
-            return provider.GetRequiredService<V2UpstreamClient>();
-        }
-
-        else
-        {
-            return provider.GetRequiredService<V3UpstreamClient>();
-        }
+        return provider.GetRequiredService<V3UpstreamClient>();
     }
 }

@@ -51,7 +51,7 @@ namespace NuGetFeed.Server.Tests
         [Fact]
         public async Task ValidIndex()
         {
-            var index = await _repository.GetResourceAsync<ServiceIndexResourceV3>();
+            var index = await GetResourceAsync<ServiceIndexResourceV3>();
 
             Assert.Equal(17, index.Entries.Count);
 
@@ -69,7 +69,7 @@ namespace NuGetFeed.Server.Tests
         {
             await _app.AddPackageAsync(_packageStream);
 
-            var resource = await _repository.GetResourceAsync<PackageSearchResource>();
+            var resource = await GetResourceAsync<PackageSearchResource>();
             var searchFilter = new SearchFilter(includePrerelease: true);
 
             var results = await resource.SearchAsync(
@@ -98,7 +98,7 @@ namespace NuGetFeed.Server.Tests
         [Fact]
         public async Task SearchReturnsEmpty()
         {
-            var resource = await _repository.GetResourceAsync<PackageSearchResource>();
+            var resource = await GetResourceAsync<PackageSearchResource>();
             var searchFilter = new SearchFilter(includePrerelease: true);
 
             var results = await resource.SearchAsync(
@@ -117,7 +117,7 @@ namespace NuGetFeed.Server.Tests
         {
             await _app.AddPackageAsync(_packageStream);
 
-            var resource = await _repository.GetResourceAsync<AutoCompleteResource>();
+            var resource = await GetResourceAsync<AutoCompleteResource>();
             var results = await resource.IdStartsWith(
                 "",
                 includePrerelease: true,
@@ -132,7 +132,7 @@ namespace NuGetFeed.Server.Tests
         [Fact]
         public async Task AutocompleteReturnsEmpty()
         {
-            var resource = await _repository.GetResourceAsync<AutoCompleteResource>();
+            var resource = await GetResourceAsync<AutoCompleteResource>();
             var results = await resource.IdStartsWith(
                 "PackageDoesNotExist",
                 includePrerelease: true,
@@ -147,7 +147,7 @@ namespace NuGetFeed.Server.Tests
         {
             await _app.AddPackageAsync(_packageStream);
 
-            var resource = await _repository.GetResourceAsync<FindPackageByIdResource>();
+            var resource = await GetResourceAsync<FindPackageByIdResource>();
             var versions = await resource.GetAllVersionsAsync(
                 "TestData",
                 _cache,
@@ -162,7 +162,7 @@ namespace NuGetFeed.Server.Tests
         [Fact]
         public async Task VersionListReturnsEmpty()
         {
-            var resource = await _repository.GetResourceAsync<FindPackageByIdResource>();
+            var resource = await GetResourceAsync<FindPackageByIdResource>();
             var versions = await resource.GetAllVersionsAsync(
                 "PackageDoesNotExist",
                 _cache,
@@ -181,7 +181,7 @@ namespace NuGetFeed.Server.Tests
             await _app.AddPackageAsync(_packageStream);
 
             var version = NuGetVersion.Parse(packageVersion);
-            var resource = await _repository.GetResourceAsync<FindPackageByIdResource>();
+            var resource = await GetResourceAsync<FindPackageByIdResource>();
             var result = await resource.DoesPackageExistAsync(
                 packageId,
                 version,
@@ -203,7 +203,7 @@ namespace NuGetFeed.Server.Tests
             using var packageStream = new MemoryStream();
 
             var version = NuGetVersion.Parse(packageVersion);
-            var resource = await _repository.GetResourceAsync<FindPackageByIdResource>();
+            var resource = await GetResourceAsync<FindPackageByIdResource>();
             var result = await resource.CopyNupkgToStreamAsync(
                 packageId,
                 version,
@@ -223,7 +223,7 @@ namespace NuGetFeed.Server.Tests
         {
             await _app.AddPackageAsync(_packageStream);
 
-            var resource = await _repository.GetResourceAsync<PackageMetadataResource>();
+            var resource = await GetResourceAsync<PackageMetadataResource>();
             var packages = await resource.GetMetadataAsync(
                 "TestData",
                 includePrerelease: true,
@@ -244,7 +244,7 @@ namespace NuGetFeed.Server.Tests
         [Fact]
         public async Task PackageMetadataReturnsEmty()
         {
-            var resource = await _repository.GetResourceAsync<PackageMetadataResource>();
+            var resource = await GetResourceAsync<PackageMetadataResource>();
             var packages = await resource.GetMetadataAsync(
                 "PackageDoesNotExist",
                 includePrerelease: true,
@@ -261,6 +261,13 @@ namespace NuGetFeed.Server.Tests
             _app.Dispose();
             _client.Dispose();
             _cache.Dispose();
+        }
+
+        private async Task<TResource> GetResourceAsync<TResource>()
+            where TResource : class, INuGetResource
+        {
+            return await _repository.GetResourceAsync<TResource>()
+                ?? throw new InvalidOperationException($"The feed doesn't have the {typeof(TResource).Name} resource.");
         }
     }
 }

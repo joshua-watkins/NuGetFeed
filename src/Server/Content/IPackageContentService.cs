@@ -20,7 +20,7 @@ public interface IPackageContentService
     /// <param name="packageId">The package ID.</param>
     /// <param name="cancellationToken">A token to cancel the task.</param>
     /// <returns>The package's versions, or null if the package does not exist.</returns>
-    Task<PackageVersionsResponse> GetPackageVersionsOrNullAsync(
+    Task<PackageVersionsResponse?> GetPackageVersionsOrNullAsync(
         string packageId,
         CancellationToken cancellationToken);
 
@@ -34,7 +34,7 @@ public interface IPackageContentService
     /// <returns>
     /// The package's content stream, or null if the package does not exist. The stream may not be seekable.
     /// </returns>
-    Task<Stream> GetPackageContentStreamOrNullAsync(
+    Task<Stream?> GetPackageContentStreamOrNullAsync(
         string packageId,
         NuGetVersion packageVersion,
         CancellationToken cancellationToken);
@@ -49,7 +49,7 @@ public interface IPackageContentService
     /// <returns>
     /// The package's manifest stream, or null if the package does not exist. The stream may not be seekable.
     /// </returns>
-    Task<Stream> GetPackageManifestStreamOrNullAsync(
+    Task<Stream?> GetPackageManifestStreamOrNullAsync(
         string packageId,
         NuGetVersion packageVersion,
         CancellationToken cancellationToken);
@@ -63,7 +63,7 @@ public interface IPackageContentService
     /// <returns>
     /// The package's readme stream, or null if the package or readme does not exist. The stream may not be seekable.
     /// </returns>
-    Task<Stream> GetPackageReadmeStreamOrNullAsync(
+    Task<Stream?> GetPackageReadmeStreamOrNullAsync(
         string id,
         NuGetVersion version,
         CancellationToken cancellationToken);
@@ -77,7 +77,7 @@ public interface IPackageContentService
     /// <returns>
     /// The package's icon stream, or null if the package or icon does not exist. The stream may not be seekable.
     /// </returns>
-    Task<Stream> GetPackageIconStreamOrNullAsync(
+    Task<Stream?> GetPackageIconStreamOrNullAsync(
         string id,
         NuGetVersion version,
         CancellationToken cancellationToken);
@@ -89,5 +89,5 @@ public interface IPackageContentService
     /// <param name="version">The package's version.</param>
     /// <param name="cancellationToken">A token to cancel the task.</param>
     /// <returns>The package's license stream, or null if the package license does not exist, or the license type is URL or expression.</returns>
-    Task<Stream> GetPackageLicenseStreamOrNullAsync(string id, NuGetVersion version, CancellationToken cancellationToken);
+    Task<Stream?> GetPackageLicenseStreamOrNullAsync(string id, NuGetVersion version, CancellationToken cancellationToken);
 }

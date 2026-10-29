@@ -1,11 +1,11 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace NuGetFeed.Configuration;
 
 public class DatabaseOptions
 {
-    public string Type { get; set; }
+    public string? Type { get; set; }
 
-    [Required]
-    public string ConnectionString { get; set; }
+    /// <summary>
+    /// Required.
+    /// </summary>
+    public string? ConnectionString { get; set; }
 }

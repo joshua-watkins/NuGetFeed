@@ -69,7 +69,7 @@ public class SearchQuery
         return new SearchQuery(terms, filters);
     }
 
-    private static IEnumerable<(string Field, string Value)> Tokenize(string query)
+    private static IEnumerable<(string? Field, string Value)> Tokenize(string query)
     {
         var position = 0;
         while (position < query.Length)
@@ -81,7 +81,7 @@ public class SearchQuery
             }
 
             // A token is either "value", field:value or field:"quoted value".
-            string field = null;
+            string? field = null;
             var start = position;
             while (position < query.Length && !char.IsWhiteSpace(query[position]) && query[position] != ':' && query[position] != '"')
             {

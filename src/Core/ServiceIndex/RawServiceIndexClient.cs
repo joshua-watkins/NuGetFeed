@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NuGetFeed.Extensions;
 using NuGetFeed.Models;
+using NuGetFeed.Serialization;
 
 namespace NuGetFeed.ServiceIndex;
 
@@ -31,8 +32,9 @@ public class RawServiceIndexClient : IServiceIndexClient
     /// <inheritdoc />
     public async Task<ServiceIndexResponse> GetAsync(CancellationToken cancellationToken = default)
     {
-        return await _httpClient.GetFromJsonAsync<ServiceIndexResponse>(
+        return await _httpClient.GetFromJsonAsync(
             _serviceIndexUrl,
+            NuGetJsonContext.Default.ServiceIndexResponse,
             cancellationToken);
     }
 }

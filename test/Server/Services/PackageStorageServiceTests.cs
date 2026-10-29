@@ -22,7 +22,7 @@ namespace NuGetFeed.Server.Tests.Services
             {
                 await Assert.ThrowsAsync<ArgumentNullException>(
                     () => _target.SavePackageContentAsync(
-                        null,
+                        null!,
                         packageStream: Stream.Null,
                         nuspecStream: Stream.Null,
                         readmeStream: Stream.Null,
@@ -36,7 +36,7 @@ namespace NuGetFeed.Server.Tests.Services
                 await Assert.ThrowsAsync<ArgumentNullException>(
                     () => _target.SavePackageContentAsync(
                         _package,
-                        packageStream: null,
+                        packageStream: null!,
                         nuspecStream: Stream.Null,
                         readmeStream: Stream.Null,
                         iconStream: Stream.Null,
@@ -50,7 +50,7 @@ namespace NuGetFeed.Server.Tests.Services
                     () => _target.SavePackageContentAsync(
                         _package,
                         packageStream: Stream.Null,
-                        nuspecStream: null,
+                        nuspecStream: null!,
                         readmeStream: Stream.Null,
                         iconStream: Stream.Null,
                         licenseStream: Stream.Null));
@@ -243,7 +243,7 @@ namespace NuGetFeed.Server.Tests.Services
                     var result = await _target.GetPackageStreamAsync(_package.Id, _package.Version, cancellationToken);
 
                     // Assert
-                    Assert.Equal("My package", await ToStringAsync(result));
+                    Assert.Equal("My package", await ToStringAsync(result!));
 
                     _storage.Verify(s => s.GetAsync(PackagePath, cancellationToken), Times.Once);
                 }
@@ -281,7 +281,7 @@ namespace NuGetFeed.Server.Tests.Services
                     var result = await _target.GetNuspecStreamAsync(_package.Id, _package.Version, cancellationToken);
 
                     // Assert
-                    Assert.Equal("My nuspec", await ToStringAsync(result));
+                    Assert.Equal("My nuspec", await ToStringAsync(result!));
 
                     _storage.Verify(s => s.GetAsync(NuspecPath, cancellationToken), Times.Once);
                 }
@@ -319,7 +319,7 @@ namespace NuGetFeed.Server.Tests.Services
                     var result = await _target.GetReadmeStreamAsync(_package.Id, _package.Version, cancellationToken);
 
                     // Assert
-                    Assert.Equal("My readme", await ToStringAsync(result));
+                    Assert.Equal("My readme", await ToStringAsync(result!));
 
                     _storage.Verify(s => s.GetAsync(ReadmePath, cancellationToken), Times.Once);
                 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,7 +31,7 @@ public static partial class DependencyInjectionExtensions
     /// <returns>The dependency injection container.</returns>
     public static IServiceCollection AddProvider<TService>(
         this IServiceCollection services,
-        Func<IServiceProvider, IConfiguration, TService> func)
+        Func<IServiceProvider, IConfiguration, TService?> func)
         where TService : class
     {
         services.AddSingleton<IProvider<TService>>(new DelegateProvider<TService>(func));
@@ -46,7 +47,7 @@ public static partial class DependencyInjectionExtensions
     /// <returns>Whether the database type is active.</returns>
     public static bool HasDatabaseType(this IConfiguration config, string value)
     {
-        return config[DatabaseTypeKey].Equals(value, StringComparison.OrdinalIgnoreCase);
+        return string.Equals(config[DatabaseTypeKey], value, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -57,7 +58,7 @@ public static partial class DependencyInjectionExtensions
     /// <returns>Whether the search type is active.</returns>
     public static bool HasSearchType(this IConfiguration config, string value)
     {
-        return config[SearchTypeKey].Equals(value, StringComparison.OrdinalIgnoreCase);
+        return string.Equals(config[SearchTypeKey], value, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -68,51 +69,51 @@ public static partial class DependencyInjectionExtensions
     /// <returns>Whether the database type is active.</returns>
     public static bool HasStorageType(this IConfiguration config, string value)
     {
-        return config[StorageTypeKey].Equals(value, StringComparison.OrdinalIgnoreCase);
+        return string.Equals(config[StorageTypeKey], value, StringComparison.OrdinalIgnoreCase);
     }
 
-    public static IServiceCollection AddNuGetFeedDbContextProvider<TContext>(
+    /// <summary>
+    /// Add a database that <see cref="NuGetFeedContext"/> can use. The context uses the
+    /// database whose type matches the "Database:Type" configuration.
+    /// </summary>
+    /// <param name="services">The dependency injection container.</param>
+    /// <param name="databaseType">The database's type in the configuration, like "Sqlite".</param>
+    /// <param name="configureContext">Configures the context to use the database.</param>
+    /// <returns>The dependency injection container.</returns>
+    public static IServiceCollection AddNuGetFeedDatabaseProvider(
         this IServiceCollection services,
         string databaseType,
         Action<IServiceProvider, DbContextOptionsBuilder> configureContext)
-        where TContext : DbContext, IContext
     {
-        services.TryAddScoped<IContext>(provider => provider.GetRequiredService<TContext>());
-        services.TryAddTransient<IPackageDatabase>(provider => provider.GetRequiredService<PackageDatabase>());
-
-        services.AddDbContext<TContext>(configureContext);
-
-        services.AddProvider<IContext>((provider, config) =>
+        // The context is registered once, and configured by whichever database is active.
+        if (!services.Any(service => service.ServiceType == typeof(DatabaseProvider)))
         {
-            if (!config.HasDatabaseType(databaseType)) return null;
+            services.AddDbContext<NuGetFeedContext>(ConfigureDatabase);
+            services.TryAddTransient<IPackageDatabase, PackageDatabase>();
 
-            return provider.GetRequiredService<TContext>();
-        });
+            // The database can also search packages.
+            services.AddProvider<ISearchIndexer>((provider, config) =>
+                config.HasSearchType(DatabaseSearchType) ? provider.GetRequiredService<NullSearchIndexer>() : null);
+            services.AddProvider<ISearchService>((provider, config) =>
+                config.HasSearchType(DatabaseSearchType) ? provider.GetRequiredService<DatabaseSearchService>() : null);
+        }
 
-        services.AddProvider<IPackageDatabase>((provider, config) =>
-        {
-            if (!config.HasDatabaseType(databaseType)) return null;
-
-            return provider.GetRequiredService<PackageDatabase>();
-        });
-
-        services.AddProvider<ISearchIndexer>((provider, config) =>
-        {
-            if (!config.HasSearchType(DatabaseSearchType)) return null;
-            if (!config.HasDatabaseType(databaseType)) return null;
-
-            return provider.GetRequiredService<NullSearchIndexer>();
-        });
-
-        services.AddProvider<ISearchService>((provider, config) =>
-        {
-            if (!config.HasSearchType(DatabaseSearchType)) return null;
-            if (!config.HasDatabaseType(databaseType)) return null;
-
-            return provider.GetRequiredService<DatabaseSearchService>();
-        });
+        services.AddSingleton(new DatabaseProvider(databaseType, configureContext));
 
         return services;
+    }
+
+    private static void ConfigureDatabase(IServiceProvider provider, DbContextOptionsBuilder options)
+    {
+        var configuration = provider.GetRequiredService<IConfiguration>();
+        var databases = provider.GetServices<DatabaseProvider>().ToList();
+
+        var database = databases.FirstOrDefault(d => configuration.HasDatabaseType(d.DatabaseType))
+            ?? throw new InvalidOperationException(
+                $"The '{DatabaseTypeKey}' config is '{configuration[DatabaseTypeKey]}', which isn't a database this application supports. " +
+                $"Supported database types: {string.Join(", ", databases.Select(d => d.DatabaseType))}.");
+
+        database.ConfigureContext(provider, options);
     }
 
     /// <summary>
@@ -120,7 +121,7 @@ public static partial class DependencyInjectionExtensions
     /// </summary>
     /// <typeparam name="TService">The service that will be resolved using providers.</typeparam>
     /// <param name="services">The dependency injection container.</param>
-    /// <returns>An instance of the service created by the providers.</returns>
+    /// <returns>An instance of the service created by the providers, or null if no provider is active.</returns>
     public static TService GetServiceFromProviders<TService>(IServiceProvider services)
         where TService : class
     {
@@ -137,6 +138,14 @@ public static partial class DependencyInjectionExtensions
             }
         }
 
-        return null;
+        // The container returns null for this service if no provider is active.
+        return null!;
     }
+
+    /// <summary>
+    /// A database that <see cref="NuGetFeedContext"/> can use.
+    /// </summary>
+    private sealed record DatabaseProvider(
+        string DatabaseType,
+        Action<IServiceProvider, DbContextOptionsBuilder> ConfigureContext);
 }

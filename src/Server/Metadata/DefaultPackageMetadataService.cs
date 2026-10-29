@@ -30,7 +30,7 @@ public class DefaultPackageMetadataService : IPackageMetadataService
         _builder = builder ?? throw new ArgumentNullException(nameof(builder));
     }
 
-    public async Task<NuGetFeedRegistrationIndexResponse> GetRegistrationIndexOrNullAsync(
+    public async Task<NuGetFeedRegistrationIndexResponse?> GetRegistrationIndexOrNullAsync(
         string packageId,
         bool semVer2 = false,
         CancellationToken cancellationToken = default)
@@ -60,7 +60,7 @@ public class DefaultPackageMetadataService : IPackageMetadataService
                 vulnerabilities));
     }
 
-    public async Task<RegistrationLeafResponse> GetRegistrationLeafOrNullAsync(
+    public async Task<RegistrationLeafResponse?> GetRegistrationLeafOrNullAsync(
         string id,
         NuGetVersion version,
         bool semVer2 = false,

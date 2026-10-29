@@ -17,7 +17,7 @@ namespace NuGetFeed.Core.Tests
 
             var result = JsonSerializer.Deserialize<IReadOnlyList<string>>(json, options);
 
-            var first = Assert.Single(result);
+            var first = Assert.Single(result!);
             Assert.NotNull(first);
             Assert.True(string.IsNullOrEmpty(first));
         }
@@ -32,7 +32,7 @@ namespace NuGetFeed.Core.Tests
 
             var result = JsonSerializer.Deserialize<IReadOnlyList<string>>(json, options);
 
-            var first = Assert.Single(result);
+            var first = Assert.Single(result!);
             Assert.Equal("Foo bar", first);
         }
 
@@ -46,7 +46,7 @@ namespace NuGetFeed.Core.Tests
 
             var result = JsonSerializer.Deserialize<IReadOnlyList<string>>(json, options);
 
-            Assert.Empty(result);
+            Assert.Empty(result!);
         }
 
         [Fact]
@@ -59,7 +59,7 @@ namespace NuGetFeed.Core.Tests
 
             var result = JsonSerializer.Deserialize<IReadOnlyList<string>>(json, options);
 
-            Assert.Equal(2, result.Count);
+            Assert.Equal(2, result!.Count);
             Assert.Equal("Foo", result[0]);
             Assert.Equal("bar", result[1]);
         }
@@ -87,7 +87,7 @@ namespace NuGetFeed.Core.Tests
             var options = new JsonSerializerOptions();
             options.Converters.Add(new StringOrStringArrayJsonConverter());
 
-            IReadOnlyList<string> list = null;
+            IReadOnlyList<string>? list = null;
 
             var json = JsonSerializer.Serialize(list, options);
 
@@ -113,7 +113,7 @@ namespace NuGetFeed.Core.Tests
             var options = new JsonSerializerOptions();
             options.Converters.Add(new StringOrStringArrayJsonConverter());
 
-            IReadOnlyList<string> list = new List<string> { "Hello", "World", null };
+            IReadOnlyList<string> list = new List<string> { "Hello", "World", null! };
 
             var json = JsonSerializer.Serialize(list, options);
 

@@ -19,13 +19,13 @@ namespace NuGetFeed.Search;
 /// </summary>
 public class DatabaseSearchService : ISearchService
 {
-    private readonly IContext _context;
+    private readonly NuGetFeedContext _context;
     private readonly IFrameworkCompatibilityService _frameworks;
     private readonly IVulnerabilityService _vulnerabilities;
     private readonly ISearchResponseBuilder _searchBuilder;
 
     public DatabaseSearchService(
-        IContext context,
+        NuGetFeedContext context,
         IFrameworkCompatibilityService frameworks,
         IVulnerabilityService vulnerabilities,
         ISearchResponseBuilder searchBuilder)
@@ -65,7 +65,7 @@ public class DatabaseSearchService : ISearchService
 
         var ranked = candidates
             .GroupBy(c => c.Id, StringComparer.OrdinalIgnoreCase)
-            .Select(group => new { Id = group.Key, Versions = group.ToList(), Latest = group.MaxBy(c => c.Version) })
+            .Select(group => new { Id = group.Key, Versions = group.ToList(), Latest = group.MaxBy(c => c.Version)! })
             .Select(p => new
             {
                 p.Id,
@@ -255,15 +255,15 @@ public class DatabaseSearchService : ISearchService
         return score;
     }
 
-    private static bool Contains(string value, string term)
+    private static bool Contains(string? value, string term)
         => value != null && value.Contains(term, StringComparison.OrdinalIgnoreCase);
 
     private IQueryable<Package> ApplySearchFilters(
         IQueryable<Package> query,
         bool includePrerelease,
         bool includeSemVer2,
-        string packageType,
-        IReadOnlyList<string> frameworks)
+        string? packageType,
+        IReadOnlyList<string>? frameworks)
     {
         if (!includePrerelease)
         {
@@ -282,13 +282,13 @@ public class DatabaseSearchService : ISearchService
 
         if (frameworks != null)
         {
-            query = query.Where(p => p.TargetFrameworks.Any(f => frameworks.Contains(f.Moniker)));
+            query = query.Where(p => p.TargetFrameworks.Any(f => f.Moniker != null && frameworks.Contains(f.Moniker)));
         }
 
         return query.Where(p => p.Listed);
     }
 
-    private IReadOnlyList<string> GetCompatibleFrameworksOrNull(string framework)
+    private IReadOnlyList<string>? GetCompatibleFrameworksOrNull(string? framework)
     {
         if (framework == null) return null;
 
@@ -297,14 +297,14 @@ public class DatabaseSearchService : ISearchService
 
     private class SearchCandidate
     {
-        public string Id { get; set; }
-        public string NormalizedVersion { get; set; }
-        public string OriginalVersion { get; set; }
-        public string Title { get; set; }
-        public string Description { get; set; }
-        public string Summary { get; set; }
-        public string[] Tags { get; set; }
-        public string[] Authors { get; set; }
+        public string Id { get; set; } = null!;
+        public string NormalizedVersion { get; set; } = null!;
+        public string? OriginalVersion { get; set; }
+        public string? Title { get; set; }
+        public string? Description { get; set; }
+        public string? Summary { get; set; }
+        public string[]? Tags { get; set; }
+        public string[]? Authors { get; set; }
         public long Downloads { get; set; }
 
         public NuGetVersion Version => NuGetVersion.Parse(OriginalVersion ?? NormalizedVersion);

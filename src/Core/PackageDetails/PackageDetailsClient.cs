@@ -29,7 +29,7 @@ public partial class NuGetClientFactory
             return await client.GetPackageMetadataAsync(packageId, cancellationToken);
         }
 
-        public async Task<Stream> GetPackageReadmeStreamOrNullAsync(
+        public async Task<Stream?> GetPackageReadmeStreamOrNullAsync(
             string packageId,
             NuGetVersion packageVersion,
             CancellationToken cancellationToken = default)

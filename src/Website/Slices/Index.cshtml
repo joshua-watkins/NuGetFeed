@@ -1,0 +1,173 @@
+@inherits RazorSlice<IndexModel>
+@implements IUsesLayout<_Layout, LayoutModel>
+
+<div class="search-options form-inline">
+    <div class="form-group">
+        <label>Package type:</label>
+
+        <div class="search-dropdown">
+            <div class="dropdown">
+                <button class="btn btn-default dropdown-toggle" type="button" id="package-type" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                    @IndexModel.PackageTypes.GetValueOrDefault(Model.PackageType, "Other")
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="package-type">
+                    @foreach (var packageType in IndexModel.PackageTypes)
+                    {
+                        <li><a href="@Model.SearchLink(packageType: packageType.Key, page: 1)">@packageType.Value</a></li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Framework:</label>
+
+        <div class="search-dropdown">
+            <div class="dropdown">
+                <button class="btn btn-default dropdown-toggle" type="button" id="framework" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                    @IndexModel.TargetFrameworks.GetValueOrDefault(Model.Framework, "Other")
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="framework">
+                    @foreach (var framework in IndexModel.TargetFrameworks)
+                    {
+                        if (framework.Key.StartsWith("divider"))
+                        {
+                            <li role="separator" class="divider"></li>
+                        }
+                        else if (framework.Key.StartsWith("header"))
+                        {
+                            <li class="dropdown-header">@framework.Value</li>
+                        }
+                        else
+                        {
+                            <li><a href="@Model.SearchLink(framework: framework.Key, page: 1)">@framework.Value</a></li>
+                        }
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group form-check">
+        <label for="prerelease">Include prerelease:</label>
+
+        <input
+            type="checkbox"
+            id="prerelease"
+            checked="@Model.Prerelease"
+            onclick="window.location.href='@Model.SearchLink(prerelease: !Model.Prerelease, page: 1)'" />
+    </div>
+</div>
+
+@if (Model.Packages.Count == 0)
+{
+    <div>
+        <h2>Oops, nothing here...</h2>
+        <p>
+            It looks like there's no package here to see. Take a look below for useful links.
+        </p>
+        <p><a href="@Model.PathBase/upload">Upload a package</a></p>
+    </div>
+}
+else
+{
+    @foreach (var package in Model.Packages)
+    {
+        <div class="row search-result">
+            <div class="col-sm-1 hidden-xs hidden-sm">
+                <img src="@(package.IconUrl ?? LayoutModel.Content(DefaultIcon))"
+                     class="package-icon img-responsive"
+                     onerror="this.src='@LayoutModel.Content(DefaultIcon)'"
+                     alt="The package icon" />
+            </div>
+            <div class="col-sm-11">
+                <div>
+                    <a href="@Model.PathBase/packages/@Uri.EscapeDataString(package.PackageId)/@Uri.EscapeDataString(package.Version)"
+                       class="package-title">
+                        @package.PackageId
+                    </a>
+                    <span>by: @string.Join(" ", package.Authors ?? Array.Empty<string>())</span>
+                </div>
+                <ul class="info">
+                    <li>
+                        <span>
+                            <i class="ms-Icon ms-Icon--Download"></i>
+                            @package.TotalDownloads.ToMetric() total downloads
+                        </span>
+                    </li>
+                    <li>
+                        <span>
+                            <i class="ms-Icon ms-Icon--Flag"></i>
+                            Latest version: @package.Version
+                        </span>
+                    </li>
+                    @if (package.Tags?.Any() == true)
+                    {
+                        <li>
+                            <span class="tags">
+                                <i class="ms-Icon ms-Icon--Tag"></i>
+                                @string.Join(" ", package.Tags)
+                            </span>
+                        </li>
+                    }
+                </ul>
+                <div>
+                    @package.Description
+                </div>
+            </div>
+        </div>
+    }
+
+    var showPreviousLink = Model.PageIndex > 1;
+    var showNextLink = Model.Packages.Count >= IndexModel.ResultsPerPage;
+
+    if (showPreviousLink || showNextLink)
+    {
+        <nav aria-label="Search page navigation">
+            <ul class="pager">
+                @if (showPreviousLink)
+                {
+                    <li><a href="@Model.SearchLink(page: Model.PageIndex - 1)">Previous</a></li>
+                }
+
+                @if (showNextLink)
+                {
+                    <li><a href="@Model.SearchLink(page: Model.PageIndex + 1)">Next</a></li>
+                }
+            </ul>
+        </nav>
+    }
+}
+
+@functions {
+    private const string DefaultIcon = "images/default-package-icon-256x256.png";
+
+    public LayoutModel LayoutModel => new("Packages", Model.PathBase, WebsitePage.Packages, Model.Query);
+
+    protected override Task ExecuteSectionAsync(string name)
+    {
+        // The search query is in a form in the header. Pass the search filters back up to the header's search form.
+        if (name == "SearchForm")
+        {
+            if (Model.PackageType != "any")
+            {
+                <input type="hidden" name="packageType" value="@Model.PackageType" />
+            }
+
+            if (Model.Framework != "any")
+            {
+                <input type="hidden" name="framework" value="@Model.Framework" />
+            }
+
+            if (!Model.Prerelease)
+            {
+                <input type="hidden" name="prerelease" value="False" />
+            }
+        }
+
+        return Task.CompletedTask;
+    }
+}

@@ -48,7 +48,7 @@ namespace NuGetFeed.Server.Tests.Services
                 var result = await _target.GetAsync("hello.txt");
 
                 // Assert
-                Assert.Equal("Hello world", await ToStringAsync(result));
+                Assert.Equal("Hello world", await ToStringAsync(result!));
             }
 
             [Fact]

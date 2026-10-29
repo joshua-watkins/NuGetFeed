@@ -17,10 +17,10 @@ public class NuGetFeedRegistrationIndexResponse
 {
 #region Original properties from RegistrationIndexResponse.
     [JsonPropertyName("@id")]
-    public string RegistrationIndexUrl { get; set; }
+    public string RegistrationIndexUrl { get; set; } = null!;
 
     [JsonPropertyName("@type")]
-    public IReadOnlyList<string> Type { get; set; }
+    public IReadOnlyList<string> Type { get; set; } = null!;
 
     [JsonPropertyName("count")]
     public int Count { get; set; }
@@ -32,7 +32,7 @@ public class NuGetFeedRegistrationIndexResponse
     /// registration index page model.
     /// </summary>
     [JsonPropertyName("items")]
-    public IReadOnlyList<NuGetFeedRegistrationIndexPage> Pages { get; set; }
+    public IReadOnlyList<NuGetFeedRegistrationIndexPage> Pages { get; set; } = null!;
 
     /// <summary>
     /// The package's total downloads across all versions.

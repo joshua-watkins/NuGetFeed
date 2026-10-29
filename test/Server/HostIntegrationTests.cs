@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NuGetFeed;
@@ -17,37 +18,37 @@ namespace NuGetFeed.Server.Tests
         [Fact]
         public void ThrowsIfDatabaseTypeInvalid()
         {
-            var provider = BuildServiceProvider(new Dictionary<string, string>
+            var provider = BuildServiceProvider(new Dictionary<string, string?>
             {
                 { DatabaseTypeKey, "InvalidType" }
             });
 
             Assert.Throws<InvalidOperationException>(
-                () => provider.GetRequiredService<IContext>());
+                () => provider.GetRequiredService<NuGetFeedContext>());
         }
 
         [Fact]
         public void ReturnsDatabaseContext()
         {
-            var provider = BuildServiceProvider(new Dictionary<string, string>
+            var provider = BuildServiceProvider(new Dictionary<string, string?>
             {
                 { DatabaseTypeKey, "Sqlite" },
                 { ConnectionStringKey, "..." }
             });
 
-            Assert.NotNull(provider.GetRequiredService<IContext>());
+            Assert.NotNull(provider.GetRequiredService<NuGetFeedContext>());
         }
 
         [Fact]
         public void ReturnsSqliteContext()
         {
-            var provider = BuildServiceProvider(new Dictionary<string, string>
+            var provider = BuildServiceProvider(new Dictionary<string, string?>
             {
                 { DatabaseTypeKey, "Sqlite" },
                 { ConnectionStringKey, "..." }
             });
 
-            Assert.NotNull(provider.GetRequiredService<SqliteContext>());
+            Assert.True(provider.GetRequiredService<NuGetFeedContext>().Database.IsSqlite());
         }
 
         [Fact]
@@ -55,18 +56,18 @@ namespace NuGetFeed.Server.Tests
         {
             var provider = BuildServiceProvider();
 
-            var context = provider.GetRequiredService<IContext>();
+            var context = provider.GetRequiredService<NuGetFeedContext>();
 
-            Assert.IsType<SqliteContext>(context);
+            Assert.True(context.Database.IsSqlite());
         }
 
-        private IServiceProvider BuildServiceProvider(Dictionary<string, string> configs = null)
+        private IServiceProvider BuildServiceProvider(Dictionary<string, string?>? configs = null)
         {
             // Start from the server's own appsettings.json, which is copied to the test output.
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(AppContext.BaseDirectory)
                 .AddJsonFile("appsettings.json")
-                .AddInMemoryCollection(configs ?? new Dictionary<string, string>())
+                .AddInMemoryCollection(configs ?? new Dictionary<string, string?>())
                 .Build();
 
             var services = new ServiceCollection();

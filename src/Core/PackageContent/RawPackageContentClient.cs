@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using NuGet.Versioning;
 using NuGetFeed.Extensions;
 using NuGetFeed.Models;
+using NuGetFeed.Serialization;
 
 namespace NuGetFeed.PackageContent;
 
@@ -31,18 +32,18 @@ public class RawPackageContentClient : IPackageContentClient
     }
 
     /// <inheritdoc />
-    public async Task<PackageVersionsResponse> GetPackageVersionsOrNullAsync(
+    public async Task<PackageVersionsResponse?> GetPackageVersionsOrNullAsync(
         string packageId,
         CancellationToken cancellationToken = default)
     {
         var id = packageId.ToLowerInvariant();
         var url = $"{_packageContentUrl}/{id}/index.json";
 
-        return await _httpClient.GetFromJsonOrDefaultAsync<PackageVersionsResponse>(url, cancellationToken);
+        return await _httpClient.GetFromJsonOrDefaultAsync(url, NuGetJsonContext.Default.PackageVersionsResponse, cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<Stream> DownloadPackageOrNullAsync(
+    public async Task<Stream?> DownloadPackageOrNullAsync(
         string packageId,
         NuGetVersion packageVersion,
         CancellationToken cancellationToken = default)
@@ -56,14 +57,15 @@ public class RawPackageContentClient : IPackageContentClient
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
+            response.Dispose();
             return null;
         }
 
-        return await response.Content.ReadAsStreamAsync();
+        return await response.Content.ReadAsStreamAsync(cancellationToken);
     }
 
     /// <inheritdoc />
-    public async Task<Stream> DownloadPackageManifestOrNullAsync(
+    public async Task<Stream?> DownloadPackageManifestOrNullAsync(
         string packageId,
         NuGetVersion packageVersion,
         CancellationToken cancellationToken = default)
@@ -77,9 +79,10 @@ public class RawPackageContentClient : IPackageContentClient
 
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
+            response.Dispose();
             return null;
         }
 
-        return await response.Content.ReadAsStreamAsync();
+        return await response.Content.ReadAsStreamAsync(cancellationToken);
     }
 }

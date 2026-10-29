@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NuGetFeed.Extensions;
 using NuGetFeed.Models;
+using NuGetFeed.Serialization;
 
 namespace NuGetFeed.Search;
 
@@ -29,7 +30,7 @@ public class RawAutocompleteClient : IAutocompleteClient
     }
 
     public async Task<AutocompleteResponse> AutocompleteAsync(
-        string query = null,
+        string? query = null,
         int skip = 0,
         int take = 20,
         bool includePrerelease = true,
@@ -45,7 +46,7 @@ public class RawAutocompleteClient : IAutocompleteClient
             includeSemVer2,
             "q");
 
-        return await _httpClient.GetFromJsonAsync<AutocompleteResponse>(url, cancellationToken);
+        return await _httpClient.GetFromJsonAsync(url, NuGetJsonContext.Default.AutocompleteResponse, cancellationToken);
     }
 
     public async Task<AutocompleteResponse> ListPackageVersionsAsync(
@@ -63,6 +64,6 @@ public class RawAutocompleteClient : IAutocompleteClient
             includeSemVer2,
             "id");
 
-        return await _httpClient.GetFromJsonAsync<AutocompleteResponse>(url, cancellationToken);
+        return await _httpClient.GetFromJsonAsync(url, NuGetJsonContext.Default.AutocompleteResponse, cancellationToken);
     }
 }

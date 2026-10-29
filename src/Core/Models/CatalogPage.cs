@@ -24,7 +24,7 @@ public class CatalogPage
     /// A unique ID associated with the most recent commit in this page.
     /// </summary>
     [JsonPropertyName("commitId")]
-    public string CommitId { get; set; }
+    public string CommitId { get; set; } = null!;
 
     /// <summary>
     /// The number of items in the page.
@@ -36,11 +36,11 @@ public class CatalogPage
     /// The items used to discover <see cref="CatalogLeaf"/>s.
     /// </summary>
     [JsonPropertyName("items")]
-    public List<CatalogLeafItem> Items { get; set; }
+    public List<CatalogLeafItem> Items { get; set; } = null!;
 
     /// <summary>
     /// The URL to the Catalog Index.
     /// </summary>
     [JsonPropertyName("parent")]
-    public string CatalogIndexUrl { get; set; }
+    public string CatalogIndexUrl { get; set; } = null!;
 }

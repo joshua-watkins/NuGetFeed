@@ -6,12 +6,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using NuGetFeed.Extensions;
 using NuGetFeed.Models;
+using NuGetFeed.Serialization;
 
 namespace NuGetFeed.Search;
 
 /// <summary>
 /// The client used to search for packages.
-/// 
+///
 /// See https://docs.microsoft.com/en-us/nuget/api/search-query-service-resource
 /// </summary>
 public class RawSearchClient : ISearchClient
@@ -31,35 +32,35 @@ public class RawSearchClient : ISearchClient
     }
 
     public async Task<SearchResponse> SearchAsync(
-        string query = null,
+        string? query = null,
         int skip = 0,
         int take = 20,
         bool includePrerelease = true,
         bool includeSemVer2 = true,
-        string packageType = null,
-        string framework = null,
+        string? packageType = null,
+        string? framework = null,
         CancellationToken cancellationToken = default)
     {
         var url = AddSearchQueryString(_searchUrl, query, skip, take, includePrerelease, includeSemVer2, "q", packageType, framework);
 
-        return await _httpClient.GetFromJsonAsync<SearchResponse>(url, cancellationToken);
+        return await _httpClient.GetFromJsonAsync(url, NuGetJsonContext.Default.SearchResponse, cancellationToken);
     }
 
     internal static string AddSearchQueryString(
         string uri,
-        string query,
+        string? query,
         int? skip,
         int? take,
         bool includePrerelease,
         bool includeSemVer2,
         string queryParamName,
-        string packageType = null,
-        string framework = null)
+        string? packageType = null,
+        string? framework = null)
     {
         var queryString = new Dictionary<string, string>();
 
-        if (skip.HasValue && skip.Value > 0) queryString["skip"] = skip.ToString();
-        if (take.HasValue) queryString["take"] = take.ToString();
+        if (skip.HasValue && skip.Value > 0) queryString["skip"] = skip.Value.ToString();
+        if (take.HasValue) queryString["take"] = take.Value.ToString();
         if (includePrerelease) queryString["prerelease"] = true.ToString();
         if (includeSemVer2) queryString["semVerLevel"] = "2.0.0";
         if (!string.IsNullOrEmpty(packageType)) queryString["packageType"] = packageType;

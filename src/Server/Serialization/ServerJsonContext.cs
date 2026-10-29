@@ -1,14 +1,18 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using NuGetFeed.Catalog;
+using NuGetFeed.Endpoints;
 
 namespace NuGetFeed.Serialization;
 
 /// <summary>
-/// Source generated JSON serialization for the types the server reads and writes outside of MVC.
+/// Source generated JSON serialization for the types the server reads and writes outside of the NuGet protocol.
 /// </summary>
+[JsonSourceGenerationOptions(DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
 [JsonSerializable(typeof(string[]))]
 [JsonSerializable(typeof(JsonElement))]
+[JsonSerializable(typeof(CatalogPackageSnapshot))]
 internal partial class ServerJsonContext : JsonSerializerContext
 {
     /// <summary>
@@ -19,4 +23,15 @@ internal partial class ServerJsonContext : JsonSerializerContext
     {
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     });
+}
+
+/// <summary>
+/// Source generated JSON serialization for the administration endpoints' requests and responses,
+/// which use camel case property names like other ASP.NET Core web APIs.
+/// </summary>
+[JsonSourceGenerationOptions(JsonSerializerDefaults.Web)]
+[JsonSerializable(typeof(DeprecationRequest))]
+[JsonSerializable(typeof(AdvisoryRequest))]
+internal partial class AdminJsonContext : JsonSerializerContext
+{
 }

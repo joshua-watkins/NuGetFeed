@@ -55,9 +55,9 @@ public class PackageIndexingService : IPackageIndexingService
         // Try to extract all the necessary information from the package.
         Package package;
         Stream nuspecStream;
-        Stream readmeStream;
-        Stream iconStream;
-        Stream licenseStream;
+        Stream? readmeStream;
+        Stream? iconStream;
+        Stream? licenseStream;
 
         try
         {
@@ -91,8 +91,9 @@ public class PackageIndexingService : IPackageIndexingService
 
                 if (package.HasEmbeddedLicense)
                 {
-                    licenseStream = await packageReader.GetLicenseAsync(cancellationToken);
-                    licenseStream = await licenseStream.AsTemporaryFileStreamAsync(cancellationToken);
+                    var license = await packageReader.GetLicenseAsync(cancellationToken)
+                        ?? throw new InvalidOperationException("Package does not have a license file!");
+                    licenseStream = await license.AsTemporaryFileStreamAsync(cancellationToken);
                 }
                 else
                 {

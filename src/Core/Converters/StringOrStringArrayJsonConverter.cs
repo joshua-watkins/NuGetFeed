@@ -15,7 +15,7 @@ public class StringOrStringArrayJsonConverter : JsonConverter<IReadOnlyList<stri
         // Try to read a single string first.
         if (reader.TokenType == JsonTokenType.String)
         {
-            return new List<string> { reader.GetString() };
+            return new List<string> { reader.GetString()! };
         }
 
         // Try to read an array of strings.
@@ -30,7 +30,7 @@ public class StringOrStringArrayJsonConverter : JsonConverter<IReadOnlyList<stri
         {
             if (reader.TokenType == JsonTokenType.String)
             {
-                result.Add(reader.GetString());
+                result.Add(reader.GetString()!);
             }
             else if (reader.TokenType == JsonTokenType.EndArray)
             {

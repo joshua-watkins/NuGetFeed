@@ -24,7 +24,7 @@ public partial class NuGetClientFactory
     private readonly string _serviceIndexUrl;
 
     private readonly SemaphoreSlim _mutex;
-    private NuGetClients _clients;
+    private NuGetClients? _clients;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="NuGetClientFactory"/> class
@@ -32,6 +32,9 @@ public partial class NuGetClientFactory
     /// </summary>
     protected NuGetClientFactory()
     {
+        _httpClient = null!;
+        _serviceIndexUrl = null!;
+        _mutex = new SemaphoreSlim(1, 1);
     }
 
     /// <summary>
@@ -220,18 +223,18 @@ public partial class NuGetClientFactory
         }
 
         // TODO: This should periodically refresh the service index response.
-        return clientFactory(_clients);
+        return clientFactory(_clients!);
     }
 
     private class NuGetClients
     {
-        public ServiceIndexResponse ServiceIndex { get; set; }
+        public required ServiceIndexResponse ServiceIndex { get; init; }
 
-        public IPackageContentClient PackageContentClient { get; set; }
-        public IPackageMetadataClient PackageMetadataClient { get; set; }
-        public ISearchClient SearchClient { get; set; }
-        public IAutocompleteClient AutocompleteClient { get; set; }
-        public ICatalogClient CatalogClient { get; set; }
-        public IPackageDetailsClient PackageDetailsClient { get; set; }
+        public required IPackageContentClient PackageContentClient { get; init; }
+        public required IPackageMetadataClient PackageMetadataClient { get; init; }
+        public required ISearchClient SearchClient { get; init; }
+        public required IAutocompleteClient AutocompleteClient { get; init; }
+        public required ICatalogClient CatalogClient { get; init; }
+        public required IPackageDetailsClient PackageDetailsClient { get; init; }
     }
 }

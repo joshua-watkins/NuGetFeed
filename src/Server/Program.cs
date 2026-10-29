@@ -1,4 +1,7 @@
-using McMaster.Extensions.CommandLineUtils;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,6 +11,26 @@ using NuGetFeed.Extensions;
 using NuGetFeed.Upstream;
 
 // Runs the NuGet feed server on its own: the NuGet V3 API, without the website.
+if (args.Any(arg => arg is "-h" or "-?" or "--help"))
+{
+    Console.WriteLine("""
+        A light-weight NuGet service
+
+        Usage: nugetfeed [command] [options]
+
+        Commands:
+          import downloads    Import package downloads from nuget.org.
+
+        Options:
+          --urls <urls>       The URLs that NuGetFeed should bind to.
+          --<key>=<value>     Set a configuration value, like --Database:ConnectionString="Data Source=nugetfeed.db".
+          -h|--help           Show help information.
+
+        With no command, runs the server.
+        """);
+    return;
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.UseNuGetFeedConfigRoot();
@@ -45,6 +68,35 @@ if (!app.ValidateStartupOptions())
     return;
 }
 
+switch (GetCommand(args))
+{
+    case []:
+        break;
+
+    case ["import", "downloads"]:
+        using (var cancellation = new CancellationTokenSource())
+        using (var scope = app.Services.CreateScope())
+        {
+            // Stop the import with Ctrl+C.
+            Console.CancelKeyPress += (_, e) =>
+            {
+                e.Cancel = true;
+                cancellation.Cancel();
+            };
+
+            var importer = scope.ServiceProvider.GetRequiredService<DownloadsImporter>();
+
+            await importer.ImportAsync(cancellation.Token);
+        }
+
+        return;
+
+    case var unknown:
+        Console.Error.WriteLine($"Unknown command '{string.Join(' ', unknown)}'. Use --help to see the commands.");
+        Environment.ExitCode = 1;
+        return;
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseStatusCodePages();
@@ -58,41 +110,28 @@ app.UseOperationCancelledMiddleware();
 
 app.MapNuGetFeed();
 
-// Other arguments, like --environment or --Database:ConnectionString=..., are configuration
-// values that the host already read. Let them through instead of rejecting them.
-var commandLine = new CommandLineApplication
+await app.RunMigrationsAsync();
+await app.RunAsync();
+
+// The command is the arguments that aren't options. Options, like --environment Development
+// or --Database:ConnectionString=..., are configuration values that the host already read.
+static string[] GetCommand(string[] args)
 {
-    Name = "nugetfeed",
-    Description = "A light-weight NuGet service",
-    UnrecognizedArgumentHandling = UnrecognizedArgumentHandling.CollectAndContinue,
-};
+    var command = new List<string>();
 
-commandLine.HelpOption(inherited: true);
-
-commandLine.Command("import", import =>
-{
-    import.UnrecognizedArgumentHandling = UnrecognizedArgumentHandling.CollectAndContinue;
-
-    import.Command("downloads", downloads =>
+    for (var i = 0; i < args.Length; i++)
     {
-        downloads.UnrecognizedArgumentHandling = UnrecognizedArgumentHandling.CollectAndContinue;
-
-        downloads.OnExecuteAsync(async cancellationToken =>
+        var arg = args[i];
+        if (arg.StartsWith('-') || arg.StartsWith('/'))
         {
-            using var scope = app.Services.CreateScope();
-            var importer = scope.ServiceProvider.GetRequiredService<DownloadsImporter>();
+            // "--key value" passes the value as the next argument; "--key=value" doesn't.
+            if (!arg.Contains('=')) i++;
 
-            await importer.ImportAsync(cancellationToken);
-        });
-    });
-});
+            continue;
+        }
 
-commandLine.Option("--urls", "The URLs that NuGetFeed should bind to.", CommandOptionType.SingleValue);
+        command.Add(arg);
+    }
 
-commandLine.OnExecuteAsync(async cancellationToken =>
-{
-    await app.RunMigrationsAsync(cancellationToken);
-    await app.RunAsync();
-});
-
-await commandLine.ExecuteAsync(args);
+    return command.ToArray();
+}

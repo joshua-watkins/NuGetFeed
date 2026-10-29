@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 
 namespace NuGetFeed.Server.Tests
@@ -30,7 +31,7 @@ namespace NuGetFeed.Server.Tests
 
             if (resourceStream == null)
             {
-                return null;
+                throw new ArgumentException($"The test resource '{resourceName}' doesn't exist.", nameof(resourceName));
             }
 
             var bufferedStream = new MemoryStream();

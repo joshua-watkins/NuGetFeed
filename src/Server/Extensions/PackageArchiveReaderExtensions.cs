@@ -29,7 +29,7 @@ public static class PackageArchiveReaderExtensions
     {
         try
         {
-            return package.NuspecReader.GetLicenseMetadata().Type == LicenseType.File;
+            return package.NuspecReader.GetLicenseMetadata()?.Type == LicenseType.File;
         }
         catch
         {
@@ -47,7 +47,7 @@ public static class PackageArchiveReaderExtensions
         try
         {
             var licenseMetadata = package.NuspecReader.GetLicenseMetadata();
-            if (licenseMetadata.Type == LicenseType.File)
+            if (licenseMetadata?.Type == LicenseType.File)
             {
                 return Path.GetFileName(licenseMetadata.License).EndsWith(".md", StringComparison.OrdinalIgnoreCase);
             }
@@ -73,10 +73,13 @@ public static class PackageArchiveReaderExtensions
         this PackageArchiveReader package,
         CancellationToken cancellationToken)
     {
-        return await package.GetStreamAsync(PathUtility.StripLeadingDirectorySeparators(package.NuspecReader.GetIcon()), cancellationToken);
+        var iconPath = package.NuspecReader.GetIcon()
+            ?? throw new InvalidOperationException("Package does not have an icon!");
+
+        return await package.GetStreamAsync(PathUtility.StripLeadingDirectorySeparators(iconPath), cancellationToken);
     }
 
-    public async static Task<Stream> GetLicenseAsync(this PackageArchiveReader package, CancellationToken cancellationToken)
+    public async static Task<Stream?> GetLicenseAsync(this PackageArchiveReader package, CancellationToken cancellationToken)
     {
         var licenseMetadata = package.NuspecReader.GetLicenseMetadata();
         if (licenseMetadata != null &&
@@ -149,7 +152,7 @@ public static class PackageArchiveReaderExtensions
         return SemVerLevel.Unknown;
     }
 
-    private static string GetLicenseExpression(NuspecReader nuspec)
+    private static string? GetLicenseExpression(NuspecReader nuspec)
     {
         try
         {
@@ -163,28 +166,28 @@ public static class PackageArchiveReaderExtensions
         }
     }
 
-    private static Uri ParseUri(string uriString)
+    private static Uri? ParseUri(string? uriString)
     {
         if (string.IsNullOrEmpty(uriString)) return null;
 
         return new Uri(uriString);
     }
 
-    private static string[] ParseAuthors(string authors)
+    private static string[] ParseAuthors(string? authors)
     {
         if (string.IsNullOrEmpty(authors)) return new string[0];
 
         return authors.Split(new[] { ',', ';', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
     }
 
-    private static string[] ParseTags(string tags)
+    private static string[] ParseTags(string? tags)
     {
         if (string.IsNullOrEmpty(tags)) return new string[0];
 
         return tags.Split(new[] { ',', ';', ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
     }
 
-    private static (Uri repositoryUrl, string repositoryType) GetRepositoryMetadata(NuspecReader nuspec)
+    private static (Uri? repositoryUrl, string? repositoryType) GetRepositoryMetadata(NuspecReader nuspec)
     {
         var repository = nuspec.GetRepositoryMetadata();
 
@@ -199,7 +202,7 @@ public static class PackageArchiveReaderExtensions
             return (null, null);
         }
 
-        if (repository.Type.Length > 100)
+        if (repository.Type?.Length > 100)
         {
             throw new InvalidOperationException("Repository type must be less than or equal 100 characters");
         }

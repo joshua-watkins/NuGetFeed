@@ -16,13 +16,13 @@ public class CatalogPageItem
     /// The URL to this item's corresponding <see cref="CatalogPage"/>.
     /// </summary>
     [JsonPropertyName("@id")]
-    public string CatalogPageUrl { get; set; }
+    public string CatalogPageUrl { get; set; } = null!;
 
     /// <summary>
     /// A unique ID associated with the most recent commit in this page.
     /// </summary>
     [JsonPropertyName("commitId")]
-    public string CommitId { get; set; }
+    public string CommitId { get; set; } = null!;
 
     /// <summary>
     /// A timestamp of the most recent commit in this page.

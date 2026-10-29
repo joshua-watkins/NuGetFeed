@@ -18,7 +18,7 @@ public interface IPackageMetadataClient
     /// <param name="packageId">The package's ID.</param>
     /// <param name="cancellationToken">A token to cancel the task.</param>
     /// <returns>The package's registration index, or null if the package does not exist</returns>
-    Task<RegistrationIndexResponse> GetRegistrationIndexOrNullAsync(string packageId, CancellationToken cancellationToken = default);
+    Task<RegistrationIndexResponse?> GetRegistrationIndexOrNullAsync(string packageId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get a page that was linked from the package's registration index.

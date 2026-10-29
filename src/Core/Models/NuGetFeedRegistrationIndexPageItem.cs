@@ -16,10 +16,10 @@ public class NuGetFeedRegistrationIndexPageItem
 {
 #region Original properties from RegistrationIndexPageItem.
     [JsonPropertyName("@id")]
-    public string RegistrationLeafUrl { get; set; }
+    public string RegistrationLeafUrl { get; set; } = null!;
 
     [JsonPropertyName("packageContent")]
-    public string PackageContentUrl { get; set; }
+    public string PackageContentUrl { get; set; } = null!;
 #endregion
 
     /// <summary>
@@ -27,5 +27,5 @@ public class NuGetFeedRegistrationIndexPageItem
     /// This was modified to use NuGetFeed's extended package metadata model.
     /// </summary>
     [JsonPropertyName("catalogEntry")]
-    public NuGetFeedPackageMetadata PackageMetadata { get; set; }
+    public NuGetFeedPackageMetadata PackageMetadata { get; set; } = null!;
 }

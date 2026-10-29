@@ -37,7 +37,7 @@ public static class PackageModelExtensions
                     .Where(d => d.Id != null && d.VersionRange != null)
                     .Select(d => new DependencyItem
                     {
-                        Id = d.Id,
+                        Id = d.Id!,
                         Range = d.VersionRange
                     })
                     .ToList()
@@ -45,13 +45,13 @@ public static class PackageModelExtensions
             .ToList();
     }
 
-    public static PackageDeprecation ToDeprecationOrNull(this Package package)
+    public static PackageDeprecation? ToDeprecationOrNull(this Package package)
     {
         if (!package.IsDeprecated) return null;
 
         return new PackageDeprecation
         {
-            Reasons = package.DeprecationReasons,
+            Reasons = package.DeprecationReasons!,
             Message = string.IsNullOrEmpty(package.DeprecationMessage) ? null : package.DeprecationMessage,
             AlternatePackage = string.IsNullOrEmpty(package.AlternatePackageId)
                 ? null
@@ -66,9 +66,9 @@ public static class PackageModelExtensions
     /// <summary>
     /// The advisories that affect the package's version, or null if there are none.
     /// </summary>
-    public static List<PackageVulnerability> ToVulnerabilitiesOrNull(
+    public static List<PackageVulnerability>? ToVulnerabilitiesOrNull(
         this Package package,
-        IEnumerable<VulnerabilityAdvisory> advisories)
+        IEnumerable<VulnerabilityAdvisory>? advisories)
     {
         var result = (advisories ?? Enumerable.Empty<VulnerabilityAdvisory>())
             .Where(a => a.Affects(package.Id, package.Version))

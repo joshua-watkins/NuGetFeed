@@ -31,7 +31,7 @@ public class FeedConnectionFacts
     [InlineData(null, null)]
     [InlineData("", null)]
     [InlineData("https://feed.test/v3/package/a/1.0.0/a.1.0.0.nupkg", "https://feed.test/v3/package/a/1.0.0/a.1.0.0.nupkg")]
-    public void RemoteFeedKeepsUrls(string url, string expected)
+    public void RemoteFeedKeepsUrls(string? url, string? expected)
     {
         var target = CreateRemoteFeed();
 
@@ -65,7 +65,7 @@ public class FeedConnectionFacts
     [InlineData("HTTP://LOCALHOST:5000/v3/index.json", "https://nuget.example.com/feed/v3/index.json")]
     [InlineData("http://localhost:50001/v3/index.json", "http://localhost:50001/v3/index.json")]
     [InlineData("https://example.org/icon.png", "https://example.org/icon.png")]
-    public void CoHostedFeedRewritesLocalUrls(string url, string expected)
+    public void CoHostedFeedRewritesLocalUrls(string? url, string? expected)
     {
         var target = CreateCoHostedFeed(new[] { "http://localhost:5000" });
 

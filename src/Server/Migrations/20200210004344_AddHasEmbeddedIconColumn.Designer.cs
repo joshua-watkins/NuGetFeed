@@ -5,10 +5,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NuGetFeed;
+using NuGetFeed.Entities;
 
 namespace NuGetFeed.Migrations
 {
-    [DbContext(typeof(SqliteContext))]
+    [DbContext(typeof(NuGetFeedContext))]
     [Migration("20200210004344_AddHasEmbeddedIconColumn")]
     partial class AddHasEmbeddedIconColumn
     {

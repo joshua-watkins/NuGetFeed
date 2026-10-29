@@ -17,7 +17,7 @@ public partial class NuGetClientFactory
             _clientfactory = clientFactory ?? throw new ArgumentNullException(nameof(clientFactory));
         }
 
-        public async Task<RegistrationIndexResponse> GetRegistrationIndexOrNullAsync(
+        public async Task<RegistrationIndexResponse?> GetRegistrationIndexOrNullAsync(
             string packageId,
             CancellationToken cancellationToken = default)
         {

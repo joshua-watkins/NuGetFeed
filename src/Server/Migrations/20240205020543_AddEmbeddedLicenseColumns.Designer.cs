@@ -5,12 +5,13 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NuGetFeed;
+using NuGetFeed.Entities;
 
 #nullable disable
 
 namespace NuGetFeed.Migrations
 {
-    [DbContext(typeof(SqliteContext))]
+    [DbContext(typeof(NuGetFeedContext))]
     [Migration("20240205020543_AddEmbeddedLicenseColumns")]
     partial class AddEmbeddedLicenseColumns
     {

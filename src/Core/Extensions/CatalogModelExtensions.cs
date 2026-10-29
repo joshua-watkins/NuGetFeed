@@ -129,7 +129,7 @@ public static class CatalogModelExtensions
         // Client side treats empty string version ranges as the "all" range.
         // Source: https://github.com/NuGet/NuGet.Client/blob/849063018d8ee08625774a2dcd07ab84224dabb9/src/NuGet.Core/NuGet.Protocol/DependencyInfo/RegistrationUtility.cs#L20-L30
         // Example: https://api.nuget.org/v3/catalog0/data/2016.03.14.21.19.28/servicestack.extras.serilog.2.0.1.json
-        if (!VersionRange.TryParse(packageDependency.Range, out var parsed))
+        if (!VersionRange.TryParse(packageDependency.Range ?? string.Empty, out var parsed))
         {
             return VersionRange.All;
         }

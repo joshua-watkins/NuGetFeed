@@ -1,7 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -15,6 +15,8 @@ namespace NuGetFeed.Catalog;
 /// </summary>
 public class FileCursor : ICursor
 {
+    private const string ValueProperty = "value";
+
     private readonly string _path;
     private readonly ILogger<FileCursor> _logger;
 
@@ -29,13 +31,14 @@ public class FileCursor : ICursor
         try
         {
             using (var file = File.OpenRead(_path))
+            using (var document = await JsonDocument.ParseAsync(file, cancellationToken: cancellationToken))
             {
-                var data = await JsonSerializer.DeserializeAsync<Data>(file, options: null, cancellationToken);
-                _logger.LogDebug("Read cursor value {cursor:O} from {path}.", data.Value, _path);
-                return data.Value;
+                var value = document.RootElement.GetProperty(ValueProperty).GetDateTimeOffset();
+                _logger.LogDebug("Read cursor value {cursor:O} from {path}.", value, _path);
+                return value;
             }
         }
-        catch (Exception e) when (e is FileNotFoundException || e is JsonException)
+        catch (Exception e) when (e is FileNotFoundException || e is JsonException || e is KeyNotFoundException || e is FormatException || e is InvalidOperationException)
         {
             return null;
         }
@@ -43,16 +46,15 @@ public class FileCursor : ICursor
 
     public Task SetAsync(DateTimeOffset value, CancellationToken cancellationToken)
     {
-        var data = new Data { Value = value };
-        var jsonString = JsonSerializer.Serialize(data);
-        File.WriteAllText(_path, jsonString);
-        _logger.LogDebug("Wrote cursor value {cursor:O} to {path}.", data.Value, _path);
-        return Task.CompletedTask;
-    }
+        using (var file = File.Create(_path))
+        using (var writer = new Utf8JsonWriter(file))
+        {
+            writer.WriteStartObject();
+            writer.WriteString(ValueProperty, value);
+            writer.WriteEndObject();
+        }
 
-    private class Data
-    {
-        [JsonPropertyName("value")]
-        public DateTimeOffset Value { get; set; }
+        _logger.LogDebug("Wrote cursor value {cursor:O} to {path}.", value, _path);
+        return Task.CompletedTask;
     }
 }

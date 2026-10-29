@@ -18,11 +18,11 @@ internal static class TestPackages
         string id,
         string version,
         string description = "Test description",
-        string title = null,
-        string[] tags = null,
+        string? title = null,
+        string[]? tags = null,
         string author = "Test author",
-        string packageType = null,
-        string licenseExpression = null)
+        string? packageType = null,
+        string? licenseExpression = null)
     {
         var builder = new PackageBuilder
         {

@@ -15,14 +15,14 @@ public class NullStorageService : IStorageService
         return Task.CompletedTask;
     }
 
-    public Task<Stream> GetAsync(string path, CancellationToken cancellationToken = default)
+    public Task<Stream?> GetAsync(string path, CancellationToken cancellationToken = default)
     {
-        return Task.FromResult<Stream>(null);
+        return Task.FromResult<Stream?>(null);
     }
 
-    public Task<Uri> GetDownloadUriAsync(string path, CancellationToken cancellationToken = default)
+    public Task<Uri?> GetDownloadUriAsync(string path, CancellationToken cancellationToken = default)
     {
-        return Task.FromResult<Uri>(null);
+        return Task.FromResult<Uri?>(null);
     }
 
     public Task<StoragePutResult> PutAsync(

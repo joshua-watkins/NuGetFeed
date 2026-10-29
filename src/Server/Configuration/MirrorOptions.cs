@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
 namespace NuGetFeed.Configuration;
 
-public class MirrorOptions : IValidatableObject
+public class MirrorOptions
 {
     /// <summary>
     /// If true, packages that aren't found locally will be indexed
@@ -13,28 +11,12 @@ public class MirrorOptions : IValidatableObject
     public bool Enabled { get; set; }
 
     /// <summary>
-    /// The v3 index that will be mirrored.
+    /// The v3 index that will be mirrored. Required if <see cref="Enabled"/> is true.
     /// </summary>
-    public Uri PackageSource { get; set; }
+    public Uri? PackageSource { get; set; }
 
     /// <summary>
-    /// Whether or not the package source is a v2 package source feed.
+    /// The time before a download from the package source times out. Can't be negative.
     /// </summary>
-    public bool Legacy { get; set; }
-
-    /// <summary>
-    /// The time before a download from the package source times out.
-    /// </summary>
-    [Range(0, int.MaxValue)]
     public int PackageDownloadTimeoutSeconds { get; set; } = 600;
-
-    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
-    {
-        if (Enabled && PackageSource == null)
-        {
-            yield return new ValidationResult(
-                $"The {nameof(PackageSource)} configuration is required if mirroring is enabled",
-                new[] { nameof(PackageSource) });
-        }
-    }
 }

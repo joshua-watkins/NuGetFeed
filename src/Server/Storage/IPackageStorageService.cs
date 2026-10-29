@@ -29,9 +29,9 @@ public interface IPackageStorageService
         Package package,
         Stream packageStream,
         Stream nuspecStream,
-        Stream readmeStream,
-        Stream iconStream,
-        Stream licenseStream,
+        Stream? readmeStream,
+        Stream? iconStream,
+        Stream? licenseStream,
         CancellationToken cancellationToken);
 
     /// <summary>
@@ -41,7 +41,7 @@ public interface IPackageStorageService
     /// <param name="version">The package's version.</param>
     /// <param name="cancellationToken"></param>
     /// <returns>The package's nupkg stream.</returns>
-    Task<Stream> GetPackageStreamAsync(string id, NuGetVersion version, CancellationToken cancellationToken);
+    Task<Stream?> GetPackageStreamAsync(string id, NuGetVersion version, CancellationToken cancellationToken);
 
     /// <summary>
     /// Retrieve a package's nuspec stream.
@@ -50,7 +50,7 @@ public interface IPackageStorageService
     /// <param name="version">The package's version.</param>
     /// <param name="cancellationToken"></param>
     /// <returns>The package's nuspec stream.</returns>
-    Task<Stream> GetNuspecStreamAsync(string id, NuGetVersion version, CancellationToken cancellationToken);
+    Task<Stream?> GetNuspecStreamAsync(string id, NuGetVersion version, CancellationToken cancellationToken);
 
     /// <summary>
     /// Retrieve a package's readme stream.
@@ -59,9 +59,9 @@ public interface IPackageStorageService
     /// <param name="version">The package's version.</param>
     /// <param name="cancellationToken"></param>
     /// <returns>The package's readme stream.</returns>
-    Task<Stream> GetReadmeStreamAsync(string id, NuGetVersion version, CancellationToken cancellationToken);
+    Task<Stream?> GetReadmeStreamAsync(string id, NuGetVersion version, CancellationToken cancellationToken);
 
-    Task<Stream> GetIconStreamAsync(string id, NuGetVersion version, CancellationToken cancellationToken);
+    Task<Stream?> GetIconStreamAsync(string id, NuGetVersion version, CancellationToken cancellationToken);
 
     /// <summary>
     /// Gets the packages license stream if the license is an embedded file.
@@ -71,7 +71,7 @@ public interface IPackageStorageService
     /// <param name="licenseIsMarkDown"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<Stream> GetLicenseStreamAsync(string id, NuGetVersion version, bool licenseIsMarkDown, CancellationToken cancellationToken);
+    Task<Stream?> GetLicenseStreamAsync(string id, NuGetVersion version, bool licenseIsMarkDown, CancellationToken cancellationToken);
 
     /// <summary>
     /// Remove a package's content from storage. This operation SHOULD succeed

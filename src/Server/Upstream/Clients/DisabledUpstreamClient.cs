@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,11 +26,11 @@ public class DisabledUpstreamClient : IUpstreamClient
         return Task.FromResult(_emptyPackageList);
     }
 
-    public Task<Stream> DownloadPackageOrNullAsync(
+    public Task<Stream?> DownloadPackageOrNullAsync(
         string id,
         NuGetVersion version,
         CancellationToken cancellationToken)
     {
-        return Task.FromResult<Stream>(null);
+        return Task.FromResult<Stream?>(null);
     }
 }

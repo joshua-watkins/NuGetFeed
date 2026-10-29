@@ -1,6 +1,11 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
-using Moq;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using NuGet.Versioning;
 using NuGetFeed;
 using NuGetFeed.Entities;
 using Xunit;
@@ -14,15 +19,21 @@ namespace NuGetFeed.Server.Tests.Services
             [Fact]
             public async Task ReturnsPackageAlreadyExistsOnUniqueConstraintViolation()
             {
-                await Task.Yield();
+                using var context = CreateContext();
+                var target = new PackageDatabase(context);
+
+                var result = await target.AddAsync(CreatePackage("Package", "1.0.0"), default);
+
+                Assert.Equal(PackageAddResult.PackageAlreadyExists, result);
             }
 
             [Fact]
             public async Task AddsPackage()
             {
-                // TODO: Returns Success
-                // TODO: Adds package
-                await Task.Yield();
+                var result = await _target.AddAsync(CreatePackage("New.Package", "2.0.0"), default);
+
+                Assert.Equal(PackageAddResult.Success, result);
+                Assert.True(await _target.ExistsAsync("New.Package", NuGetVersion.Parse("2.0.0"), default));
             }
         }
 
@@ -30,13 +41,23 @@ namespace NuGetFeed.Server.Tests.Services
         {
             [Theory]
             [InlineData("Package", "1.0.0", true)]
+            [InlineData("PACKAGE", "1.0.0", true)]
             [InlineData("Package", "1.0.0.0", true)]
             [InlineData("Unlisted.Package", "1.0.0", true)]
+            [InlineData("Package", "2.0.0", false)]
             [InlineData("Fake.Package", "1.0.0", false)]
             public async Task ReturnsTrueIfPackageExists(string packageId, string packageVersion, bool exists)
             {
-                System.Console.WriteLine($"TODO: {packageId} {packageVersion} {exists}");
-                await Task.Yield();
+                Assert.Equal(exists, await _target.ExistsAsync(packageId, NuGetVersion.Parse(packageVersion), default));
+            }
+
+            [Theory]
+            [InlineData("Package", true)]
+            [InlineData("Unlisted.Package", true)]
+            [InlineData("Fake.Package", false)]
+            public async Task ReturnsTrueIfAnyVersionExists(string packageId, bool exists)
+            {
+                Assert.Equal(exists, await _target.ExistsAsync(packageId, default));
             }
         }
 
@@ -45,39 +66,40 @@ namespace NuGetFeed.Server.Tests.Services
             [Fact]
             public async Task ReturnsEmptyListIfPackageDoesNotExist()
             {
-                // Ensure the context has packages with a different id/version
-                await Task.Yield();
+                Assert.Empty(await _target.FindAsync("Fake.Package", includeUnlisted: true, default));
             }
 
             [Theory]
             [MemberData(nameof(ReturnsPackagesData))]
-            public async Task ReturnsPackages(string packageId, string packageVersion, bool includeUnlisted, bool exists)
+            public async Task ReturnsPackages(string packageId, bool includeUnlisted, bool exists)
             {
-                // TODO: Ensure resulting versions are normalized.
-                System.Console.WriteLine($"TODO: {packageId} {packageVersion} {includeUnlisted} {exists}");
-                await Task.Yield();
+                var packages = await _target.FindAsync(packageId, includeUnlisted, default);
+
+                if (exists)
+                {
+                    var package = Assert.Single(packages);
+                    Assert.Equal("1.0.0", package.NormalizedVersionString);
+                    Assert.Single(package.PackageTypes);
+                    Assert.Single(package.TargetFrameworks);
+                }
+                else
+                {
+                    Assert.Empty(packages);
+                }
             }
 
             public static IEnumerable<object[]> ReturnsPackagesData()
             {
-                object[] ReturnsPackagesHelper(string packageId, string packageVersion, bool includeUnlisted, bool exists)
-                {
-                    return new object[] { packageId, packageVersion, includeUnlisted, exists };
-                }
-
                 // A package that doesn't exist should never be returned
-                yield return ReturnsPackagesHelper("Fake.Package", "1.0.0", includeUnlisted: true, exists: false);
+                yield return new object[] { "Fake.Package", true, false };
 
                 // A listed package should be returned regardless of the "includeUnlisted" parameter
-                yield return ReturnsPackagesHelper("Package", "1.0.0", includeUnlisted: false, exists: true);
-                yield return ReturnsPackagesHelper("Package", "1.0.0", includeUnlisted: true, exists: true);
-
-                // The inputted package version should be normalized
-                yield return ReturnsPackagesHelper("Package", "1.0.0.0", includeUnlisted: false, exists: true);
+                yield return new object[] { "Package", false, true };
+                yield return new object[] { "Package", true, true };
 
                 // Unlisted packages should only be returned if "includeUnlisted" is true
-                yield return ReturnsPackagesHelper("Unlisted.Package", "1.0.0", includeUnlisted: false, exists: false);
-                yield return ReturnsPackagesHelper("Unlisted.Package", "1.0.0", includeUnlisted: true, exists: true);
+                yield return new object[] { "Unlisted.Package", false, false };
+                yield return new object[] { "Unlisted.Package", true, true };
             }
         }
 
@@ -86,38 +108,34 @@ namespace NuGetFeed.Server.Tests.Services
             [Fact]
             public async Task ReturnsNullIfPackageDoesNotExist()
             {
-                await Task.Yield();
+                Assert.Null(await _target.FindOrNullAsync("Package", NuGetVersion.Parse("2.0.0"), includeUnlisted: true, default));
             }
 
             [Theory]
             [MemberData(nameof(ReturnsPackageData))]
             public async Task ReturnsPackage(string packageId, string packageVersion, bool includeUnlisted, bool exists)
             {
-                // TODO: Ensure resulting versions are normalized.
-                System.Console.WriteLine($"TODO: {packageId} {packageVersion} {includeUnlisted} {exists}");
-                await Task.Yield();
+                var package = await _target.FindOrNullAsync(packageId, NuGetVersion.Parse(packageVersion), includeUnlisted, default);
+
+                Assert.Equal(exists, package != null);
+                Assert.Equal(exists ? "1.0.0" : null, package?.NormalizedVersionString);
             }
 
             public static IEnumerable<object[]> ReturnsPackageData()
             {
-                object[] ReturnsPackageHelper(string packageId, string packageVersion, bool includeUnlisted, bool exists)
-                {
-                    return new object[] { packageId, packageVersion, includeUnlisted, exists };
-                }
-
                 // A package that doesn't exist should never be returned
-                yield return ReturnsPackageHelper("Fake.Package", "1.0.0", includeUnlisted: true, exists: false);
+                yield return new object[] { "Fake.Package", "1.0.0", true, false };
 
                 // A listed package should be returned regardless of the "includeUnlisted" parameter
-                yield return ReturnsPackageHelper("Package", "1.0.0", includeUnlisted: false, exists: true);
-                yield return ReturnsPackageHelper("Package", "1.0.0", includeUnlisted: true, exists: true);
+                yield return new object[] { "Package", "1.0.0", false, true };
+                yield return new object[] { "Package", "1.0.0", true, true };
 
                 // The inputted package version should be normalized
-                yield return ReturnsPackageHelper("Package", "1.0.0.0", includeUnlisted: false, exists: true);
+                yield return new object[] { "Package", "1.0.0.0", false, true };
 
                 // Unlisted packages should only be returned if "includeUnlisted" is true
-                yield return ReturnsPackageHelper("Unlisted.Package", "1.0.0", includeUnlisted: false, exists: false);
-                yield return ReturnsPackageHelper("Unlisted.Package", "1.0.0", includeUnlisted: true, exists: true);
+                yield return new object[] { "Unlisted.Package", "1.0.0", false, false };
+                yield return new object[] { "Unlisted.Package", "1.0.0", true, true };
             }
         }
 
@@ -126,18 +144,17 @@ namespace NuGetFeed.Server.Tests.Services
             [Fact]
             public async Task ReturnsFalseIfPackageDoesNotExist()
             {
-                await Task.Yield();
+                Assert.False(await _target.UnlistPackageAsync("Fake.Package", NuGetVersion.Parse("1.0.0"), default));
             }
 
             [Theory]
-            [InlineData(false)]
-            [InlineData(true)]
-            public async Task UnlistsPackage(bool listed)
+            [InlineData("Package")]
+            [InlineData("Unlisted.Package")]
+            public async Task UnlistsPackage(string packageId)
             {
-                // TODO: This should succeed if the package is unlisted.
-                // TODO: Returns true
-                System.Console.WriteLine($"TODO: {listed}");
-                await Task.Yield();
+                Assert.True(await _target.UnlistPackageAsync(packageId, NuGetVersion.Parse("1.0.0"), default));
+
+                Assert.False((await FindAsync(packageId)).Listed);
             }
         }
 
@@ -146,33 +163,37 @@ namespace NuGetFeed.Server.Tests.Services
             [Fact]
             public async Task ReturnsFalseIfPackageDoesNotExist()
             {
-                await Task.Yield();
+                Assert.False(await _target.RelistPackageAsync("Fake.Package", NuGetVersion.Parse("1.0.0"), default));
             }
 
             [Theory]
-            [InlineData(false)]
-            [InlineData(true)]
-            public async Task RelistsPackage(bool listed)
+            [InlineData("Package")]
+            [InlineData("Unlisted.Package")]
+            public async Task RelistsPackage(string packageId)
             {
-                // TODO: This should succeed if the package is listed.
-                // TODO: Return true
-                System.Console.WriteLine($"TODO: {listed}");
-                await Task.Yield();
+                Assert.True(await _target.RelistPackageAsync(packageId, NuGetVersion.Parse("1.0.0"), default));
+
+                Assert.True((await FindAsync(packageId)).Listed);
             }
         }
 
         public class AddDownloadAsync : FactsBase
         {
             [Fact]
-            public async Task ReturnsFalseIfPackageDoesNotExist()
+            public async Task IgnoresPackageThatDoesNotExist()
             {
-                await Task.Yield();
+                await _target.AddDownloadAsync("Fake.Package", NuGetVersion.Parse("1.0.0"), default);
+
+                Assert.False(await _target.ExistsAsync("Fake.Package", default));
             }
 
             [Fact]
             public async Task IncrementsPackageDownloads()
             {
-                await Task.Yield();
+                await _target.AddDownloadAsync("Package", NuGetVersion.Parse("1.0.0"), default);
+                await _target.AddDownloadAsync("Package", NuGetVersion.Parse("1.0.0"), default);
+
+                Assert.Equal(2, (await FindAsync("Package")).Downloads);
             }
         }
 
@@ -181,25 +202,107 @@ namespace NuGetFeed.Server.Tests.Services
             [Fact]
             public async Task ReturnsFalseIfPackageDoesNotExist()
             {
-                await Task.Yield();
+                Assert.False(await _target.HardDeletePackageAsync("Fake.Package", NuGetVersion.Parse("1.0.0"), default));
             }
 
             [Fact]
             public async Task DeletesPackage()
             {
-                await Task.Yield();
+                Assert.True(await _target.HardDeletePackageAsync("Package", NuGetVersion.Parse("1.0.0"), default));
+
+                Assert.False(await _target.ExistsAsync("Package", default));
             }
         }
 
-        public class FactsBase
+        public class AllRepositorySignedAsync : FactsBase
         {
-            protected readonly Mock<IContext> _context;
+            [Fact]
+            public async Task ReturnsFalseIfAnyPackageIsUnsigned()
+            {
+                Assert.False(await _target.AllRepositorySignedAsync(default));
+            }
+
+            [Fact]
+            public async Task ReturnsTrueIfEveryPackageIsSigned()
+            {
+                using (var context = CreateContext())
+                {
+                    foreach (var package in await context.Packages.ToListAsync()) package.IsRepositorySigned = true;
+                    await context.SaveChangesAsync();
+                }
+
+                Assert.True(await _target.AllRepositorySignedAsync(default));
+            }
+        }
+
+        /// <summary>
+        /// Each test gets its own database, made by the migrations, with a listed
+        /// package "Package" and an unlisted package "Unlisted.Package", both version 1.0.0.
+        /// </summary>
+        public class FactsBase : IDisposable
+        {
+            private readonly string _path = Path.Combine(Path.GetTempPath(), "NuGetFeedTests", Guid.NewGuid().ToString("N") + ".db");
+            private readonly NuGetFeedContext _context;
+
             protected readonly PackageDatabase _target;
 
             public FactsBase()
             {
-                _context = new Mock<IContext>();
-                _target = new PackageDatabase(_context.Object);
+                Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
+
+                using (var context = CreateContext())
+                {
+                    context.RunMigrationsAsync(default).GetAwaiter().GetResult();
+
+                    var unlisted = CreatePackage("Unlisted.Package", "1.0.0");
+                    unlisted.Listed = false;
+
+                    context.Packages.Add(CreatePackage("Package", "1.0.0"));
+                    context.Packages.Add(unlisted);
+                    context.SaveChanges();
+                }
+
+                _context = CreateContext();
+                _target = new PackageDatabase(_context);
+            }
+
+            public void Dispose()
+            {
+                _context.Dispose();
+                File.Delete(_path);
+            }
+
+            protected NuGetFeedContext CreateContext()
+            {
+                var connectionString = new SqliteConnectionStringBuilder { DataSource = _path, Pooling = false };
+                var options = new DbContextOptionsBuilder<NuGetFeedContext>()
+                    .UseSqlite(connectionString.ToString())
+                    .Options;
+
+                return new NuGetFeedContext(options);
+            }
+
+            /// <summary>
+            /// Read a version 1.0.0 package from the database, without the target's tracked entities.
+            /// </summary>
+            protected async Task<Package> FindAsync(string packageId)
+            {
+                using var context = CreateContext();
+
+                return await context.Packages.SingleAsync(p => p.Id == packageId);
+            }
+
+            protected static Package CreatePackage(string id, string version)
+            {
+                return new Package
+                {
+                    Id = id,
+                    Version = NuGetVersion.Parse(version),
+                    Listed = true,
+                    Published = new DateTime(2020, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    PackageTypes = new List<PackageType> { new PackageType { Name = "Dependency", Version = "0.0" } },
+                    TargetFrameworks = new List<TargetFramework> { new TargetFramework { Moniker = "net10.0" } },
+                };
             }
         }
     }

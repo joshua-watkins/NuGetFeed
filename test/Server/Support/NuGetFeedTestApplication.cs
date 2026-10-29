@@ -14,6 +14,7 @@ using NuGetFeed.Indexing;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,20 +25,21 @@ namespace NuGetFeed.Server.Tests.Support;
 internal class NuGetFeedTestApplication : WebApplicationFactory<Program>
 {
     private readonly ITestOutputHelper _output;
-    private readonly HttpClient _upstreamClient;
-    private readonly IReadOnlyDictionary<string, string> _configuration;
+    private readonly HttpClient? _upstreamClient;
+    private readonly IReadOnlyDictionary<string, string?> _configuration;
 
     /// <param name="output">Receives the server's logs.</param>
     /// <param name="upstreamClient">If set, the server mirrors the upstream feed this client reaches.</param>
     /// <param name="configuration">Configuration that overrides the test defaults.</param>
     public NuGetFeedTestApplication(
         ITestOutputHelper output,
-        HttpClient upstreamClient = null,
-        IReadOnlyDictionary<string, string> configuration = null)
+        HttpClient? upstreamClient = null,
+        IReadOnlyDictionary<string, string>? configuration = null)
     {
         _output = output ?? throw new ArgumentNullException(nameof(output));
         _upstreamClient = upstreamClient;
-        _configuration = configuration ?? new Dictionary<string, string>();
+        _configuration = (configuration ?? new Dictionary<string, string>())
+            .ToDictionary(setting => setting.Key, setting => (string?)setting.Value);
     }
 
     /// <summary>
@@ -73,7 +75,7 @@ internal class NuGetFeedTestApplication : WebApplicationFactory<Program>
             .ConfigureAppConfiguration(config =>
             {
                 // Setup the integration test configuration.
-                config.AddInMemoryCollection(new Dictionary<string, string>
+                config.AddInMemoryCollection(new Dictionary<string, string?>
                 {
                     { "Database:Type", "Sqlite" },
                     { "Database:ConnectionString", $"Data Source={sqlitePath}" },
@@ -111,7 +113,7 @@ internal class NuGetFeedTestApplication : WebApplicationFactory<Program>
                 // pauses the debugger repeatedly if CLR exceptions are enabled.
                 // See: https://github.com/dotnet/efcore/blob/644d3c8c3a604fd0121d90eaf34f14870e19bcff/src/EFCore.Sqlite.Core/Storage/Internal/SqliteDatabaseCreator.cs#L88-L98
                 using var scope = scopeFactory.CreateScope();
-                var ctx = scope.ServiceProvider.GetRequiredService<IContext>();
+                var ctx = scope.ServiceProvider.GetRequiredService<NuGetFeedContext>();
                 var dbCreator = ctx.Database.GetService<IRelationalDatabaseCreator>();
 
                 dbCreator.Create();

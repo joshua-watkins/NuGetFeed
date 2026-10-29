@@ -26,10 +26,7 @@ public class NuGetFeedUrlGenerator : IUrlGenerator
 
     public string GetServiceIndexUrl()
     {
-        return _linkGenerator.GetUriByRouteValues(
-            _httpContextAccessor.HttpContext,
-            Routes.IndexRouteName,
-            values: null);
+        return GetUrl(Routes.IndexRouteName);
     }
 
     public string GetPackageContentResourceUrl()
@@ -44,42 +41,32 @@ public class NuGetFeedUrlGenerator : IUrlGenerator
 
     public string GetPackagePublishResourceUrl()
     {
-        return _linkGenerator.GetUriByRouteValues(
-            _httpContextAccessor.HttpContext,
-            Routes.UploadPackageRouteName,
-            values: null);
+        return GetUrl(Routes.UploadPackageRouteName);
     }
 
     public string GetSymbolPublishResourceUrl()
     {
-        return _linkGenerator.GetUriByRouteValues(
-            _httpContextAccessor.HttpContext,
-            Routes.UploadSymbolRouteName,
-            values: null);
+        return GetUrl(Routes.UploadSymbolRouteName);
     }
 
     public string GetSearchResourceUrl()
     {
-        return _linkGenerator.GetUriByRouteValues(
-            _httpContextAccessor.HttpContext,
-            Routes.SearchRouteName,
-            values: null);
+        return GetUrl(Routes.SearchRouteName);
     }
 
     public string GetAutocompleteResourceUrl()
     {
-        return _linkGenerator.GetUriByRouteValues(
-            _httpContextAccessor.HttpContext,
-            Routes.AutocompleteRouteName,
-            values: null);
+        return GetUrl(Routes.AutocompleteRouteName);
     }
 
     public string GetRegistrationIndexUrl(string id, bool semVer2 = false)
     {
-        return _linkGenerator.GetUriByRouteValues(
-            _httpContextAccessor.HttpContext,
+        return GetUrl(
             semVer2 ? Routes.RegistrationSemVer2IndexRouteName : Routes.RegistrationIndexRouteName,
-            values: new { Id = id.ToLowerInvariant() });
+            new RouteValueDictionary
+            {
+                { "id", id.ToLowerInvariant() },
+            });
     }
 
     public string GetRegistrationPageUrl(string id, NuGetVersion lower, NuGetVersion upper)
@@ -90,22 +77,23 @@ public class NuGetFeedUrlGenerator : IUrlGenerator
 
     public string GetRegistrationLeafUrl(string id, NuGetVersion version, bool semVer2 = false)
     {
-        return _linkGenerator.GetUriByRouteValues(
-            _httpContextAccessor.HttpContext,
+        return GetUrl(
             semVer2 ? Routes.RegistrationSemVer2LeafRouteName : Routes.RegistrationLeafRouteName,
-            values: new
+            new RouteValueDictionary
             {
-                Id = id.ToLowerInvariant(),
-                Version = version.ToNormalizedString().ToLowerInvariant(),
+                { "id", id.ToLowerInvariant() },
+                { "version", version.ToNormalizedString().ToLowerInvariant() },
             });
     }
 
     public string GetPackageVersionsUrl(string id)
     {
-        return _linkGenerator.GetUriByRouteValues(
-            _httpContextAccessor.HttpContext,
+        return GetUrl(
             Routes.PackageVersionsRouteName,
-            values: new { Id = id.ToLowerInvariant() });
+            new RouteValueDictionary
+            {
+                { "id", id.ToLowerInvariant() },
+            });
     }
 
     public string GetPackageDownloadUrl(string id, NuGetVersion version)
@@ -113,14 +101,13 @@ public class NuGetFeedUrlGenerator : IUrlGenerator
         id = id.ToLowerInvariant();
         var versionString = version.ToNormalizedString().ToLowerInvariant();
 
-        return _linkGenerator.GetUriByRouteValues(
-            _httpContextAccessor.HttpContext,
+        return GetUrl(
             Routes.PackageDownloadRouteName,
-            values: new
+            new RouteValueDictionary
             {
-                Id = id,
-                Version = versionString,
-                IdVersion = $"{id}.{versionString}"
+                { "id", id },
+                { "version", versionString },
+                { "idVersion", $"{id}.{versionString}" },
             });
     }
 
@@ -129,59 +116,26 @@ public class NuGetFeedUrlGenerator : IUrlGenerator
         id = id.ToLowerInvariant();
         var versionString = version.ToNormalizedString().ToLowerInvariant();
 
-        return _linkGenerator.GetUriByRouteValues(
-            _httpContextAccessor.HttpContext,
-            Routes.PackageDownloadRouteName,
-            values: new
+        return GetUrl(
+            Routes.PackageDownloadManifestRouteName,
+            new RouteValueDictionary
             {
-                Id = id,
-                Version = versionString,
-                Id2 = id,
+                { "id", id },
+                { "version", versionString },
+                { "id2", id },
             });
     }
 
     public string GetPackageIconDownloadUrl(string id, NuGetVersion version)
     {
-        id = id.ToLowerInvariant();
-        var versionString = version.ToNormalizedString().ToLowerInvariant();
-
-        return _linkGenerator.GetUriByRouteValues(
-            _httpContextAccessor.HttpContext,
-            Routes.PackageDownloadIconRouteName,
-            values: new
-            {
-                Id = id,
-                Version = versionString
-            });
+        return GetUrl(Routes.PackageDownloadIconRouteName, PackageRouteValues(id, version));
     }
 
     public string GetPackageLicenseDownloadUrl(string id, NuGetVersion version, bool licenseIsMarkDown)
     {
-        id = id.ToLowerInvariant();
-        var versionString = version.ToNormalizedString().ToLowerInvariant();
-
-        if (licenseIsMarkDown)
-        {
-            return _linkGenerator.GetUriByRouteValues(
-                   _httpContextAccessor.HttpContext,
-                   Routes.PackageDownloadLicenseMarkDownRouteName,
-                   values: new
-                   {
-                       Id = id,
-                       Version = versionString
-                   });
-        }
-        else
-        {
-            return _linkGenerator.GetUriByRouteValues(
-                   _httpContextAccessor.HttpContext,
-                   Routes.PackageDownloadLicenseTextRouteName,
-                   values: new
-                   {
-                       Id = id,
-                       Version = versionString
-                   });
-        }
+        return GetUrl(
+            licenseIsMarkDown ? Routes.PackageDownloadLicenseMarkDownRouteName : Routes.PackageDownloadLicenseTextRouteName,
+            PackageRouteValues(id, version));
     }
 
     public string GetReadmeUriTemplate()
@@ -191,22 +145,12 @@ public class NuGetFeedUrlGenerator : IUrlGenerator
 
     public string GetPackageDependentsResourceUrl()
     {
-        return _linkGenerator.GetUriByRouteValues(
-            _httpContextAccessor.HttpContext,
-            Routes.DependentsRouteName,
-            values: null);
+        return GetUrl(Routes.DependentsRouteName);
     }
 
     public string GetPackageReadmeDownloadUrl(string id, NuGetVersion version)
     {
-        return _linkGenerator.GetUriByRouteValues(
-            _httpContextAccessor.HttpContext,
-            Routes.PackageDownloadReadmeRouteName,
-            values: new
-            {
-                Id = id.ToLowerInvariant(),
-                Version = version.ToNormalizedString().ToLowerInvariant(),
-            });
+        return GetUrl(Routes.PackageDownloadReadmeRouteName, PackageRouteValues(id, version));
     }
 
     public string GetCatalogIndexUrl()
@@ -224,7 +168,7 @@ public class NuGetFeedUrlGenerator : IUrlGenerator
         return AbsoluteUrl($"v3/catalog/data/{key}/{Uri.EscapeDataString(id.ToLowerInvariant())}.{Uri.EscapeDataString(version.ToLowerInvariant())}.json");
     }
 
-    public string GetPackageDetailsUriTemplate()
+    public string? GetPackageDetailsUriTemplate()
     {
         var template = _options.Value.PackageDetailsUriTemplate;
         if (string.IsNullOrEmpty(template)) return null;
@@ -256,9 +200,24 @@ public class NuGetFeedUrlGenerator : IUrlGenerator
         return AbsoluteUrl($"v3/vulnerabilities/{name}.json");
     }
 
+    private static RouteValueDictionary PackageRouteValues(string id, NuGetVersion version)
+    {
+        return new RouteValueDictionary
+        {
+            { "id", id.ToLowerInvariant() },
+            { "version", version.ToNormalizedString().ToLowerInvariant() },
+        };
+    }
+
+    private string GetUrl(string endpointName, RouteValueDictionary? values = null)
+    {
+        return _linkGenerator.GetUriByName(HttpContext, endpointName, values ?? new RouteValueDictionary())
+            ?? throw new InvalidOperationException($"Could not generate a URL for the '{endpointName}' endpoint.");
+    }
+
     private string AbsoluteUrl(string relativePath)
     {
-        var request = _httpContextAccessor.HttpContext.Request;
+        var request = HttpContext.Request;
 
         return string.Concat(
             request.Scheme,
@@ -268,4 +227,7 @@ public class NuGetFeedUrlGenerator : IUrlGenerator
             "/",
             relativePath);
     }
+
+    private HttpContext HttpContext => _httpContextAccessor.HttpContext
+        ?? throw new InvalidOperationException("URLs can only be generated while handling a request.");
 }

@@ -95,7 +95,7 @@ public class SymbolIndexingService : ISymbolIndexingService
         }
     }
 
-    private async Task<IReadOnlyList<string>> GetSymbolPackagePdbPathsOrNullAsync(
+    private async Task<IReadOnlyList<string>?> GetSymbolPackagePdbPathsOrNullAsync(
         PackageArchiveReader symbolPackage,
         CancellationToken cancellationToken)
     {
@@ -136,15 +136,15 @@ public class SymbolIndexingService : ISymbolIndexingService
         return entries.Select(e => new FileInfo(e)).All(IsValidSymbolFileInfo);
     }
 
-    private async Task<PortablePdb> ExtractPortablePdbAsync(
+    private async Task<PortablePdb?> ExtractPortablePdbAsync(
         PackageArchiveReader symbolPackage,
         string pdbPath,
         CancellationToken cancellationToken)
     {
         // TODO: Validate that the PDB has a corresponding DLL
         // See: https://github.com/NuGet/NuGet.Jobs/blob/master/src/Validation.Symbols/SymbolsValidatorService.cs#L170
-        Stream pdbStream = null;
-        PortablePdb result = null;
+        Stream? pdbStream = null;
+        PortablePdb? result = null;
 
         try
         {
@@ -156,7 +156,9 @@ public class SymbolIndexingService : ISymbolIndexingService
                 using (var pdbReaderProvider = MetadataReaderProvider.FromPortablePdbStream(pdbStream, MetadataStreamOptions.LeaveOpen))
                 {
                     var reader = pdbReaderProvider.GetMetadataReader();
-                    var id = new BlobContentId(reader.DebugMetadataHeader.Id);
+                    var header = reader.DebugMetadataHeader
+                        ?? throw new InvalidDataException("The symbol file isn't a portable PDB.");
+                    var id = new BlobContentId(header.Id);
 
                     signature = id.Guid.ToString("N").ToUpperInvariant();
                 }

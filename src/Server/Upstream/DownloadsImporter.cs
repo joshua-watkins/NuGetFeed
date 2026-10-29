@@ -13,12 +13,12 @@ public class DownloadsImporter
 {
     private const int BatchSize = 200;
 
-    private readonly IContext _context;
+    private readonly NuGetFeedContext _context;
     private readonly IPackageDownloadsSource _downloadsSource;
     private readonly ILogger<DownloadsImporter> _logger;
 
     public DownloadsImporter(
-        IContext context,
+        NuGetFeedContext context,
         IPackageDownloadsSource downloadsSource,
         ILogger<DownloadsImporter> logger)
     {
